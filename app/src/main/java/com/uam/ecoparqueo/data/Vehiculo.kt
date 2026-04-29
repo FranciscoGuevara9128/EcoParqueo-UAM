@@ -1,4 +1,10 @@
 package com.uam.ecoparqueo.data
 
-class Vehiculo {
-}
+data class Vehiculo(
+	val marca: String,
+	val numeroPlaca: String,
+	val modelo: String,
+	val colorVehiculo: String,
+	val tipoVehiculo: String,
+	val notasAdicionales: String = ""
+)
