@@ -1,4 +1,4 @@
-package com.uam.ecoparqueo.screen
+package com.uam.ecoparqueo.ui.screens.login
 
 
 import androidx.compose.foundation.background
@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,8 +54,8 @@ fun LoginScreen(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        androidx.compose.ui.graphics.Color(0xFF1B5E20),
-                        androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                        Color(0xFF1B5E20),
+                        Color(0xFF4CAF50)
                     )
                 )
             ),
@@ -67,14 +68,14 @@ fun LoginScreen(
             modifier = Modifier
                 .size(100.dp)
                 .clip(CircleShape)
-                .background(androidx.compose.ui.graphics.Color.White),
+                .background(Color.White),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "EP",
                 fontSize = 40.sp,
                 fontWeight = FontWeight.Bold,
-                color = androidx.compose.ui.graphics.Color(0xFF1B5E20)
+                color = Color(0xFF1B5E20)
             )
         }
 
@@ -84,7 +85,7 @@ fun LoginScreen(
             text = "EcoParqueo UAM",
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
-            color = androidx.compose.ui.graphics.Color.White
+            color = Color.White
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -92,7 +93,7 @@ fun LoginScreen(
         Text(
             text = "Sistema de gestión de parqueo",
             fontSize = 16.sp,
-            color = androidx.compose.ui.graphics.Color.White
+            color = Color.White
         )
 
         Spacer(modifier = Modifier.height(35.dp))
@@ -143,9 +144,9 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (tipoUsuario == "Estudiante")
-                            androidx.compose.ui.graphics.Color(0xFF1B5E20)
+                            Color(0xFF1B5E20)
                         else
-                            androidx.compose.ui.graphics.Color.Gray
+                            Color.Gray
                     )
                 ) {
                     Text("Estudiante")
@@ -161,9 +162,9 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (tipoUsuario == "Guarda")
-                            androidx.compose.ui.graphics.Color(0xFF1B5E20)
+                            Color(0xFF1B5E20)
                         else
-                            androidx.compose.ui.graphics.Color.Gray
+                            Color.Gray
                     )
                 ) {
                     Text("Guarda de seguridad")
@@ -174,7 +175,7 @@ fun LoginScreen(
                 if (mensajeError != "") {
                     Text(
                         text = mensajeError,
-                        color = androidx.compose.ui.graphics.Color.Red
+                        color = Color.Red
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -198,12 +199,12 @@ fun LoginScreen(
                         .height(50.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = androidx.compose.ui.graphics.Color(0xFF1B5E20)
+                        containerColor = Color(0xFF1B5E20)
                     )
                 ) {
                     if (loading) {
                         CircularProgressIndicator(
-                            color = androidx.compose.ui.graphics.Color.White,
+                            color = Color.White,
                             modifier = Modifier.size(24.dp)
                         )
                     } else {

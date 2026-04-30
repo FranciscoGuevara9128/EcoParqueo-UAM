@@ -1,4 +1,4 @@
-package com.uam.ecoparqueo.screen
+package com.uam.ecoparqueo.ui.screens.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

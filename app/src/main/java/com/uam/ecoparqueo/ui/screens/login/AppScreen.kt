@@ -1,4 +1,4 @@
-package com.uam.ecoparqueo.screen
+package com.uam.ecoparqueo.ui.screens.login
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
