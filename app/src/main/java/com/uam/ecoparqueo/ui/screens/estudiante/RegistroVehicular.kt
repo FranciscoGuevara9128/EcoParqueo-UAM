@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Checkbox
@@ -44,6 +46,7 @@ fun RegistroVehicular() {
         var esMotoChecked by remember { mutableStateOf(false) }
         var marca by remember { mutableStateOf("") }
         var modelo by remember { mutableStateOf("") }
+        var anio by remember { mutableStateOf("") }
         var numeroPlaca by remember { mutableStateOf("") }
         var colorVehiculo by remember { mutableStateOf("") }
         var indicadorCarga by remember { mutableStateOf(false) }
@@ -51,9 +54,10 @@ fun RegistroVehicular() {
         // Validaciones (sin funciones auxiliares, expresiones directas)
         val tipoError = tipoVehiculo.isBlank()
         val marcaError = marca.isBlank() || marca.any { !it.isLetter() && !it.isWhitespace() }
-        val modeloNum = modelo.toIntOrNull()
-        val modeloError =
-            modelo.isBlank() || !modelo.all { it.isDigit() } || modeloNum == null || modeloNum !in 1900..2100
+        val modeloError = modelo.isBlank() || modelo.any { !it.isLetter() && !it.isWhitespace() }
+        val anioNum = anio.toIntOrNull()
+        val anioError =
+            anio.isBlank() || !anio.all { it.isDigit() } || anioNum == null || anioNum !in 1900..2100
         val placaNormalized = numeroPlaca.trim().uppercase()
         val placaError =
             placaNormalized.isBlank() || !placaNormalized.matches(Regex("^[A-Z0-9-]{6,10}$"))
@@ -64,14 +68,15 @@ fun RegistroVehicular() {
         val scope = rememberCoroutineScope()
 
         val formularioValido =
-            !(tipoError || marcaError || modeloError || placaError || colorError) && !indicadorCarga
+            !(tipoError || marcaError || modeloError || anioError || placaError || colorError) && !indicadorCarga
 
         Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.Start
             ) {
@@ -138,11 +143,24 @@ fun RegistroVehicular() {
                 OutlinedTextField(
                     value = modelo,
                     onValueChange = { modelo = it },
-                    label = { Text("Modelo (año)") },
+                    label = { Text("Modelo") },
                     isError = modeloError,
                     modifier = Modifier.fillMaxWidth(),
                     supportingText = {
-                        if (modeloError) Text(if (modelo.isBlank()) "El modelo es requerido" else "Ingresa un año válido (1900-2100)")
+                        if (modeloError) Text(if (modelo.isBlank()) "El modelo es requerido" else "El modelo solo debe contener letras")
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = anio,
+                    onValueChange = { anio = it },
+                    label = { Text("Año") },
+                    isError = anioError,
+                    modifier = Modifier.fillMaxWidth(),
+                    supportingText = {
+                        if (anioError) Text(if (anio.isBlank()) "El año es requerido" else "Ingresa un año válido (1900-2100)")
                     }
                 )
 
@@ -183,6 +201,7 @@ fun RegistroVehicular() {
                                 marca = marca.trim(),
                                 numeroPlaca = numeroPlaca.trim(),
                                 modelo = modelo.trim(),
+                                anio = anio.trim(),
                                 colorVehiculo = colorVehiculo.trim(),
                                 tipoVehiculo = tipoVehiculo.trim()
                             )

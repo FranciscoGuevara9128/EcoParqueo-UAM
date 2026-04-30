@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -71,7 +73,7 @@ fun SeleccionParqueo(tab: Int) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(16.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -101,114 +103,128 @@ fun SeleccionParqueo(tab: Int) {
             }
         }
 
-        PantallaParqueo.SELECCION -> Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(170.dp)
-        ) {
-            Box(
+        PantallaParqueo.SELECCION -> Column(
+            modifier = Modifier.fillMaxSize().
+            padding(16.dp))
+        {
+            Card(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Espacio reservado para mapa (Google Maps API)")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text("Parqueos disponibles: $totalDisponibles", style = MaterialTheme.typography.bodyLarge)
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Button(onClick = {
-            // Recalcula aleatoriamente (simulación) las disponibilidades
-            scope.launch {
-                loading = true
-                delay(600)
-                parqueos = parqueos.shuffled()
-                loading = false
-            }
-        }, modifier = Modifier.fillMaxWidth()) {
-            if (loading) CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-            else Text("Actualizar disponibilidad")
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = when (tab) {
-                0 -> "Mostrando parqueos con cupo"
-                1 -> "Mostrando parqueos sin cupo"
-                else -> "Mostrando todos los parqueos"
-            },
-            style = MaterialTheme.typography.bodyMedium
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(parqueosFiltrados) { parqueo ->
-                Card(modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-                    .clickable(enabled = parqueo.available > 0) {
-                        // Selección exclusiva (solo si hay cupo)
-                        if (parqueo.available > 0) {
-                            selectedName = if (selectedName == parqueo.name) null else parqueo.name
-                        }
-                    }
+                    .height(170.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp), verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column {
-                            val disabledColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            Text(
-                                parqueo.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = if (parqueo.available > 0) MaterialTheme.colorScheme.onSurface else disabledColor
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                "Disponibles: ${parqueo.available}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (parqueo.available > 0) MaterialTheme.colorScheme.onSurface else disabledColor
-                            )
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = selectedName == parqueo.name,
-                                onCheckedChange = { checked ->
-                                    if (parqueo.available > 0) {
-                                        selectedName = if (checked) parqueo.name else null
-                                    }
-                                },
-                                enabled = parqueo.available > 0
-                            )
+                    Text("Espacio reservado para mapa (Google Maps API)")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                "Parqueos disponibles: $totalDisponibles",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(onClick = {
+                // Recalcula aleatoriamente (simulación) las disponibilidades
+                scope.launch {
+                    loading = true
+                    delay(600)
+                    parqueos = parqueos.shuffled()
+                    loading = false
+                }
+            }, modifier = Modifier.fillMaxWidth()) {
+                if (loading) CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp
+                )
+                else Text("Actualizar disponibilidad")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = when (tab) {
+                    0 -> "Mostrando parqueos con cupo"
+                    1 -> "Mostrando parqueos sin cupo"
+                    else -> "Mostrando todos los parqueos"
+                },
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                items(parqueosFiltrados) { parqueo ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                            .clickable(enabled = parqueo.available > 0) {
+                                // Selección exclusiva (solo si hay cupo)
+                                if (parqueo.available > 0) {
+                                    selectedName =
+                                        if (selectedName == parqueo.name) null else parqueo.name
+                                }
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp), verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                val disabledColor =
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                Text(
+                                    parqueo.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = if (parqueo.available > 0) MaterialTheme.colorScheme.onSurface else disabledColor
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    "Disponibles: ${parqueo.available}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (parqueo.available > 0) MaterialTheme.colorScheme.onSurface else disabledColor
+                                )
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = selectedName == parqueo.name,
+                                    onCheckedChange = { checked ->
+                                        if (parqueo.available > 0) {
+                                            selectedName = if (checked) parqueo.name else null
+                                        }
+                                    },
+                                    enabled = parqueo.available > 0
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        Button(
-            onClick = {
-                scope.launch {
-                    pantallaActual = PantallaParqueo.CARGANDO
-                    delay(2000)
-                    pantallaActual = PantallaParqueo.MOSTRAR
-                }
-            },
-            enabled = selectedName != null,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Ir al parqueo")
+            Button(
+                onClick = {
+                    scope.launch {
+                        pantallaActual = PantallaParqueo.CARGANDO
+                        delay(2000)
+                        pantallaActual = PantallaParqueo.MOSTRAR
+                    }
+                },
+                enabled = selectedName != null,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Ir al parqueo")
+            }
         }
-    }
     }
 }
