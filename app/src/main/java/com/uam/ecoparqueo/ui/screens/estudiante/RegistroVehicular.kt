@@ -201,7 +201,7 @@ fun RegistroVehicular() {
                                 marca = marca.trim(),
                                 numeroPlaca = numeroPlaca.trim(),
                                 modelo = modelo.trim(),
-                                anio = anio.trim(),
+                                anio = anioNum.toString().trim(),
                                 colorVehiculo = colorVehiculo.trim(),
                                 tipoVehiculo = tipoVehiculo.trim()
                             )

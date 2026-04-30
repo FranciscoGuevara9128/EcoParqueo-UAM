@@ -6,9 +6,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.uam.ecoparqueo.ui.screens.estudiante.RegistroVehicular
+import com.uam.ecoparqueo.ui.screens.login.LoginScreen
 import com.uam.ecoparqueo.ui.screens.seguridad.ControlAccesoVehicular
 import com.uam.ecoparqueo.ui.screens.seguridad.SeleccionSeguridad
 import kotlinx.serialization.Serializable
+
+@Serializable
+object LoginScreen // Primera pantalla: Login
+
+
+@Serializable
+object RegistroVehicularScreen // Pantalla para Estudiante
 
 @Serializable
 object SeleccionSeguridadScreen // Pantalla 1 del Guarda
@@ -17,16 +26,35 @@ object SeleccionSeguridadScreen // Pantalla 1 del Guarda
 data class ControlAccesoVehicularScreen(
     val nombreParqueo: String // Pasa el nombre del parqueo seleccionado
 )
+
 @Composable
 fun AppNavigation(modifier: Modifier) {
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = SeleccionSeguridadScreen, // Iniciamos aquí para probar el flujo de seguridad
+        startDestination = LoginScreen, // Primera pantalla: Login
         modifier = modifier
     ) {
-        // Pantalla 1: Selección de Parqueo
+        // Pantalla de Login
+        composable<LoginScreen> {
+            LoginScreen(
+                onLoginSuccess = { tipo ->
+                    if (tipo == "Estudiante") {
+                        navController.navigate(RegistroVehicularScreen)
+                    } else {
+                        navController.navigate(SeleccionSeguridadScreen)
+                    }
+                }
+            )
+        }
+
+        // Pantalla para Estudiante: Registro Vehicular
+        composable<RegistroVehicularScreen> {
+            RegistroVehicular()
+        }
+
+        // Pantalla 1: Selección de Parqueo para Guarda
         composable<SeleccionSeguridadScreen> {
             SeleccionSeguridad(
                 onParkingSelected = { nombre ->
