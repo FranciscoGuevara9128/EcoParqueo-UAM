@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Checkbox
@@ -53,7 +55,7 @@ fun RegistroVehicular() {
         val tipoError = tipoVehiculo.isBlank()
         val marcaError = marca.isBlank() || marca.any { !it.isLetter() && !it.isWhitespace() }
         val modeloError = modelo.isBlank() || modelo.any { !it.isLetter() && !it.isWhitespace() }
-        val anioNum = modelo.toIntOrNull()
+        val anioNum = anio.toIntOrNull()
         val anioError =
             anio.isBlank() || !anio.all { it.isDigit() } || anioNum == null || anioNum !in 1900..2100
         val placaNormalized = numeroPlaca.trim().uppercase()
@@ -73,7 +75,8 @@ fun RegistroVehicular() {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.Start
             ) {
@@ -157,7 +160,7 @@ fun RegistroVehicular() {
                     isError = anioError,
                     modifier = Modifier.fillMaxWidth(),
                     supportingText = {
-                        if (anioError) Text(if (modelo.isBlank()) "El año es requerido" else "Ingresa un año válido (1900-2100)")
+                        if (anioError) Text(if (anio.isBlank()) "El año es requerido" else "Ingresa un año válido (1900-2100)")
                     }
                 )
 
@@ -198,7 +201,7 @@ fun RegistroVehicular() {
                                 marca = marca.trim(),
                                 numeroPlaca = numeroPlaca.trim(),
                                 modelo = modelo.trim(),
-                                anio = anio.toIntOrNull() ?: 0,
+                                anio = anio.trim(),
                                 colorVehiculo = colorVehiculo.trim(),
                                 tipoVehiculo = tipoVehiculo.trim()
                             )
