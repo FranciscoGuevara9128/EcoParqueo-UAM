@@ -31,6 +31,11 @@ fun ControlAccesoVehicular(nombreParqueo: String, onBack: () -> Unit) {
     var placaText by remember { mutableStateOf("") }
     var placaList by remember { mutableStateOf(listOf<String>()) } // Lista de placas registradas
 
+    // Validacion de placa (Ejemplo simple, se puede mejorar con regex)
+    val placaNormalized = placaText.trim().uppercase()
+    val placaError =
+        placaNormalized.isBlank() || !placaNormalized.matches(Regex("^[A-Z0-9-]{6,10}$"))
+
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Punto: $nombreParqueo", fontSize = 18.sp, color = Color.Gray)
         Spacer(modifier = Modifier.height(16.dp))
@@ -40,7 +45,13 @@ fun ControlAccesoVehicular(nombreParqueo: String, onBack: () -> Unit) {
             value = placaText,
             onValueChange = { placaText = it },
             label = { Text("Número de Placa") },
-            modifier = Modifier.fillMaxWidth()
+            isError = placaError,
+            modifier = Modifier.fillMaxWidth(),
+            supportingText = {
+                if (placaError) {
+                    Text("Ingrese una placa válida (6-10 caracteres, letras y números)")
+                }
+            }
         )
 
         Button(
