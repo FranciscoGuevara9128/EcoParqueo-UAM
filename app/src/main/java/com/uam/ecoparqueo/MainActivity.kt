@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import com.uam.ecoparqueo.navigation.AppNavigation
 import com.uam.ecoparqueo.ui.screens.estudiante.RegistroVehicular
 import com.uam.ecoparqueo.ui.screens.estudiante.SeleccionParqueo
 import com.uam.ecoparqueo.ui.theme.EcoParqueoUAMTheme
@@ -18,7 +20,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             EcoParqueoUAMTheme {
-                RegistroVehicular()
+                AppNavigation(modifier = Modifier)
             }
         }
     }
