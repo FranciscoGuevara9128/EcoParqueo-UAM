@@ -8,9 +8,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.uam.ecoparqueo.screen.AppScreen
 import com.uam.ecoparqueo.ui.screens.estudiante.RegistroVehicular
 import com.uam.ecoparqueo.ui.screens.estudiante.SeleccionParqueo
 import com.uam.ecoparqueo.ui.theme.EcoParqueoUAMTheme
+import com.uam.ecoparqueo.screen.AppScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,7 +20,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             EcoParqueoUAMTheme {
-                RegistroVehicular()
+                AppScreen()
             }
         }
     }
