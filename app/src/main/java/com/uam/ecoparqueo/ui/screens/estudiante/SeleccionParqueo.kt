@@ -251,7 +251,7 @@ fun SeleccionParqueo(tab: Int) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(330.dp)
+                    .weight(1f)
             ) {
                 items(parqueosFiltrados) { parqueo ->
                     Card(
