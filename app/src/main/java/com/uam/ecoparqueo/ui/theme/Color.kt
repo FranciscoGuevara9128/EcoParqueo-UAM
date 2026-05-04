@@ -9,3 +9,13 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+// Paleta de colores para pantallas estudiantes
+val VerdeOscuro = Color(0xFF1B5E20)
+val VerdePrincipal = Color(0xFF2E7D32)
+val VerdeClaro = Color(0xFF4CAF50)
+val VerdeSuave = Color(0xFFE8F5E9)
+val Blanco = Color(0xFFFFFFFF)
+val GrisTexto = Color(0xFF5F6368)
+val GrisSuave = Color(0xFFF2F2F2)
+val GrisInactivo = Color(0xFF9E9E9E)
