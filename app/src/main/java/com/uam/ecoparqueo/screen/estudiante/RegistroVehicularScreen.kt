@@ -16,8 +16,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -26,267 +26,229 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.uam.ecoparqueo.model.Vehiculo
-import com.uam.ecoparqueo.ui.theme.Blanco
-import com.uam.ecoparqueo.ui.theme.GrisInactivo
-import com.uam.ecoparqueo.ui.theme.VerdeOscuro
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.uam.ecoparqueo.vmodel.RegistroVehicularViewModel
 
 @Composable
-fun RegistroVehicular() {
-    var mostrarSeleccion by remember { mutableStateOf(false) }
-    // Si ya se completó el registro, mostramos la pantalla de selección directamente
-    if (mostrarSeleccion) {
-        SeleccionParqueo(tab = 2)
-    } else {
-        // Campos del formulario
-        var tipoVehiculo by remember { mutableStateOf("") } // "CARRO" o "MOTO"
-        var esCarroChecked by remember { mutableStateOf(false) }
-        var esMotoChecked by remember { mutableStateOf(false) }
-        var marca by remember { mutableStateOf("") }
-        var modelo by remember { mutableStateOf("") }
-        var anio by remember { mutableStateOf("") }
-        var numeroPlaca by remember { mutableStateOf("") }
-        var colorVehiculo by remember { mutableStateOf("") }
-        var indicadorCarga by remember { mutableStateOf(false) }
+fun RegistroVehicularScreen(
+    onRegistroExitoso: () -> Unit,
+    viewModel: RegistroVehicularViewModel = viewModel()
+) {
+    val state by viewModel.state.collectAsState()
+    val colorScheme = MaterialTheme.colorScheme
+    val snackbarHostState = remember { SnackbarHostState() }
 
-        // Validaciones (sin funciones auxiliares, expresiones directas)
-        val tipoError = tipoVehiculo.isBlank()
-        val marcaError = marca.isBlank() || marca.any { !it.isLetter() && !it.isWhitespace() }
-        val modeloError = modelo.isBlank() || modelo.any { !it.isLetter() && !it.isWhitespace() }
-        val anioNum = anio.toIntOrNull()
-        val anioError =
-            anio.isBlank() || !anio.all { it.isDigit() } || anioNum == null || anioNum !in 1900..2100
-        val placaNormalized = numeroPlaca.trim().uppercase()
-        val placaError =
-            placaNormalized.isBlank() || !placaNormalized.matches(Regex("^[A-Z0-9-]{6,10}$"))
-        val colorError =
-            colorVehiculo.isBlank() || colorVehiculo.any { !it.isLetter() && !it.isWhitespace() }
+    LaunchedEffect(state.mensajeSnackbar) {
+        if (state.mensajeSnackbar.isNotBlank()) {
+            snackbarHostState.showSnackbar(state.mensajeSnackbar)
+            viewModel.onSnackbarShown()
+        }
+    }
 
-        val snackbarHostState = remember { SnackbarHostState() }
-        val scope = rememberCoroutineScope()
+    LaunchedEffect(state.registroExitoso) {
+        if (state.registroExitoso) {
+            onRegistroExitoso()
+            viewModel.onRegistroHandled()
+        }
+    }
 
-        val formularioValido =
-            !(tipoError || marcaError || modeloError || anioError || placaError || colorError) && !indicadorCarga
+    val textFieldColors = TextFieldDefaults.colors(
+        focusedTextColor = colorScheme.primary,
+        unfocusedTextColor = colorScheme.primary,
+        disabledTextColor = colorScheme.primary,
+        errorTextColor = colorScheme.error,
+        focusedContainerColor = colorScheme.surface,
+        unfocusedContainerColor = colorScheme.surface,
+        disabledContainerColor = colorScheme.surface,
+        errorContainerColor = colorScheme.surface,
+        cursorColor = colorScheme.primary,
+        errorCursorColor = colorScheme.error,
+        focusedIndicatorColor = colorScheme.primary,
+        unfocusedIndicatorColor = colorScheme.outline,
+        disabledIndicatorColor = colorScheme.outline,
+        errorIndicatorColor = colorScheme.error,
+        focusedLabelColor = colorScheme.primary,
+        unfocusedLabelColor = colorScheme.primary,
+        disabledLabelColor = colorScheme.primary,
+        errorLabelColor = colorScheme.error,
+        focusedSupportingTextColor = colorScheme.primary,
+        unfocusedSupportingTextColor = colorScheme.primary,
+        disabledSupportingTextColor = colorScheme.primary,
+        errorSupportingTextColor = colorScheme.error
+    )
 
-        val textFieldColors = TextFieldDefaults.colors(
-            focusedTextColor = VerdeOscuro,
-            unfocusedTextColor = VerdeOscuro,
-            disabledTextColor = VerdeOscuro,
-            errorTextColor = Color.Red,
-            focusedContainerColor = Blanco,
-            unfocusedContainerColor = Blanco,
-            disabledContainerColor = Blanco,
-            errorContainerColor = Blanco,
-            cursorColor = VerdeOscuro,
-            errorCursorColor = Color.Red,
-            focusedIndicatorColor = VerdeOscuro,
-            unfocusedIndicatorColor = GrisInactivo,
-            disabledIndicatorColor = GrisInactivo,
-            errorIndicatorColor = Color.Red,
-            focusedLabelColor = VerdeOscuro,
-            unfocusedLabelColor = VerdeOscuro,
-            disabledLabelColor = VerdeOscuro,
-            errorLabelColor = Color.Red,
-            focusedSupportingTextColor = VerdeOscuro,
-            unfocusedSupportingTextColor = VerdeOscuro,
-            disabledSupportingTextColor = VerdeOscuro,
-            errorSupportingTextColor = Color.Red
-        )
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colorScheme.primary)
+                .padding(padding)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                "Registro de vehículo",
+                style = MaterialTheme.typography.headlineMedium,
+                color = colorScheme.onPrimary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
 
-        Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(VerdeOscuro)
-                    .padding(padding)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.Start
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-                Text(
-                    "Registro de vehículo",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Blanco
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Blanco),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Selecciona el tipo de vehículo", color = VerdeOscuro)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = esCarroChecked,
-                                onCheckedChange = { checked ->
-                                    esCarroChecked = checked
-                                    if (checked) {
-                                        esMotoChecked = false
-                                        tipoVehiculo = "CARRO"
-                                    } else if (!esMotoChecked) {
-                                        tipoVehiculo = ""
-                                    }
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Selecciona el tipo de vehículo", color = colorScheme.primary)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = state.esCarroChecked,
+                            onCheckedChange = { checked ->
+                                if (checked) {
+                                    viewModel.onTipoVehiculoChange("CARRO", esCarro = true, esMoto = false)
+                                } else if (!state.esMotoChecked) {
+                                    viewModel.onTipoVehiculoChange("", esCarro = false, esMoto = false)
                                 }
-                            )
-                            Text("Carro", modifier = Modifier.padding(start = 8.dp), color = VerdeOscuro)
-                            Spacer(modifier = Modifier.size(16.dp))
-                            Checkbox(
-                                checked = esMotoChecked,
-                                onCheckedChange = { checked ->
-                                    esMotoChecked = checked
-                                    if (checked) {
-                                        esCarroChecked = false
-                                        tipoVehiculo = "MOTO"
-                                    } else if (!esCarroChecked) {
-                                        tipoVehiculo = ""
-                                    }
+                            }
+                        )
+                        Text("Carro", modifier = Modifier.padding(start = 8.dp), color = colorScheme.primary)
+                        Spacer(modifier = Modifier.size(16.dp))
+                        Checkbox(
+                            checked = state.esMotoChecked,
+                            onCheckedChange = { checked ->
+                                if (checked) {
+                                    viewModel.onTipoVehiculoChange("MOTO", esCarro = false, esMoto = true)
+                                } else if (!state.esCarroChecked) {
+                                    viewModel.onTipoVehiculoChange("", esCarro = false, esMoto = false)
                                 }
-                            )
-                            Text("Moto", modifier = Modifier.padding(start = 8.dp), color = VerdeOscuro)
-                        }
-                        if (tipoError) {
-                            Text(
-                                text = "Seleccion obligatoria",
-                                color = Color.Red,
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = marca,
-                            onValueChange = { marca = it },
-                            label = { Text("Marca") },
-                            isError = marcaError,
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = textFieldColors,
-                            supportingText = {
-                                if (marcaError) Text(if (marca.isBlank()) "La marca es requerida" else "La marca solo debe contener letras")
                             }
                         )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = modelo,
-                            onValueChange = { modelo = it },
-                            label = { Text("Modelo") },
-                            isError = modeloError,
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = textFieldColors,
-                            supportingText = {
-                                if (modeloError) Text(if (modelo.isBlank()) "El modelo es requerido" else "El modelo solo debe contener letras")
-                            }
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = anio,
-                            onValueChange = { anio = it },
-                            label = { Text("Año") },
-                            isError = anioError,
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = textFieldColors,
-                            supportingText = {
-                                if (anioError) Text(if (anio.isBlank()) "El año es requerido" else "Ingresa un año válido (1900-2100)")
-                            }
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = numeroPlaca,
-                            onValueChange = { numeroPlaca = it.uppercase() },
-                            label = { Text("Número de placa") },
-                            isError = placaError,
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = textFieldColors,
-                            supportingText = {
-                                if (placaError) Text(if (numeroPlaca.isBlank()) "La placa es requerida" else "Formato de placa inválido (6-10 caracteres)")
-                            }
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = colorVehiculo,
-                            onValueChange = { colorVehiculo = it },
-                            label = { Text("Color del vehículo") },
-                            isError = colorError,
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = textFieldColors,
-                            supportingText = {
-                                if (colorError) Text(if (colorVehiculo.isBlank()) "El color es requerido" else "Ingresa solo letras")
-                            }
+                        Text("Moto", modifier = Modifier.padding(start = 8.dp), color = colorScheme.primary)
+                    }
+                    if (state.tipoError) {
+                        Text(
+                            text = "Seleccion obligatoria",
+                            color = colorScheme.error,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Button(
-                    onClick = {
-                        scope.launch {
-                            indicadorCarga = true
-                            try {
-                                delay(800)
-                                val vehiculo = Vehiculo(
-                                    marca = marca.trim(),
-                                    numeroPlaca = numeroPlaca.trim(),
-                                    modelo = modelo.trim(),
-                                    anio = anioNum.toString().trim(),
-                                    colorVehiculo = colorVehiculo.trim(),
-                                    tipoVehiculo = tipoVehiculo.trim()
-                                )
-                                // Aquí solo simulamos el guardado; limpiamos el formulario
-                                marca = ""
-                                modelo = ""
-                                numeroPlaca = ""
-                                colorVehiculo = ""
-                                esCarroChecked = false
-                                esMotoChecked = false
-                                tipoVehiculo = ""
-                                snackbarHostState.showSnackbar("Vehículo registrado: ${vehiculo.numeroPlaca}")
-                                // Cambiamos al flujo de selección desde este mismo composable
-                                mostrarSeleccion = true
-                            } finally {
-                                indicadorCarga = false
-                            }
+                    OutlinedTextField(
+                        value = state.marca,
+                        onValueChange = { viewModel.onMarcaChange(it) },
+                        label = { Text("Marca") },
+                        isError = state.marcaError,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = textFieldColors,
+                        supportingText = {
+                            if (state.marcaError) Text(
+                                if (state.marca.isBlank()) "La marca es requerida"
+                                else "La marca solo debe contener letras"
+                            )
                         }
-                    },
-                    enabled = formularioValido,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Blanco,
-                        contentColor = VerdeOscuro,
-                        disabledContainerColor = Blanco,
-                        disabledContentColor = GrisInactivo
                     )
-                ) {
-                    if (indicadorCarga) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp,
-                            color = VerdeOscuro
-                        )
-                    } else {
-                        Text("Enviar", color = VerdeOscuro)
-                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = state.modelo,
+                        onValueChange = { viewModel.onModeloChange(it) },
+                        label = { Text("Modelo") },
+                        isError = state.modeloError,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = textFieldColors,
+                        supportingText = {
+                            if (state.modeloError) Text(
+                                if (state.modelo.isBlank()) "El modelo es requerido"
+                                else "El modelo solo debe contener letras"
+                            )
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = state.anio,
+                        onValueChange = { viewModel.onAnioChange(it) },
+                        label = { Text("Año") },
+                        isError = state.anioError,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = textFieldColors,
+                        supportingText = {
+                            if (state.anioError) Text(
+                                if (state.anio.isBlank()) "El año es requerido"
+                                else "Ingresa un año válido (1900-2100)"
+                            )
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = state.numeroPlaca,
+                        onValueChange = { viewModel.onNumeroPlacaChange(it) },
+                        label = { Text("Número de placa") },
+                        isError = state.placaError,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = textFieldColors,
+                        supportingText = {
+                            if (state.placaError) Text(
+                                if (state.numeroPlaca.isBlank()) "La placa es requerida"
+                                else "Formato de placa inválido (6-10 caracteres)"
+                            )
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = state.colorVehiculo,
+                        onValueChange = { viewModel.onColorChange(it) },
+                        label = { Text("Color del vehículo") },
+                        isError = state.colorError,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = textFieldColors,
+                        supportingText = {
+                            if (state.colorError) Text(
+                                if (state.colorVehiculo.isBlank()) "El color es requerido"
+                                else "Ingresa solo letras"
+                            )
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { viewModel.onEnviar() },
+                enabled = state.formularioValido,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorScheme.surface,
+                    contentColor = colorScheme.primary,
+                    disabledContainerColor = colorScheme.surface,
+                    disabledContentColor = colorScheme.outline
+                )
+            ) {
+                if (state.indicadorCarga) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = colorScheme.primary
+                    )
+                } else {
+                    Text("Enviar", color = colorScheme.primary)
                 }
             }
         }
