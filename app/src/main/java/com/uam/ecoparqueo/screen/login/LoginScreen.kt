@@ -1,4 +1,4 @@
-package com.uam.ecoparqueo.ui.screens.login
+package com.uam.ecoparqueo.screen.login
 
 
 import androidx.compose.foundation.background
