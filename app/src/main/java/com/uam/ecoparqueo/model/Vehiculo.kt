@@ -1,11 +1,14 @@
 package com.uam.ecoparqueo.model
 
+import com.google.gson.annotations.SerializedName
+
 data class Vehiculo(
-	val marca: String,
-	val numeroPlaca: String,
-	val modelo: String,
-	var anio: String,
-	val colorVehiculo: String,
-	val tipoVehiculo: String,
-	val notasAdicionales: String = ""
+	@SerializedName("id") val id: Int = 0,
+	@SerializedName("marca") val marca: String,
+	@SerializedName("numero_placa") val numeroPlaca: String,
+	@SerializedName("modelo") val modelo: String,
+	@SerializedName("anio") val anio: String,
+	@SerializedName("color_vehiculo") val colorVehiculo: String,
+	@SerializedName("tipo_vehiculo") val tipoVehiculo: String,
+	@SerializedName("notas_adicionales") val notasAdicionales: String = ""
 )
