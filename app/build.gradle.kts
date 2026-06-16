@@ -60,6 +60,20 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    //NAVIGATION
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
+
+    //VIEWMODEL
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    //RETROFIT
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
     //ROOM
 
     implementation(libs.androidx.room.runtime)
