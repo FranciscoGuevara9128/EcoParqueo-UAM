@@ -1,6 +1,5 @@
 package com.uam.ecoparqueo.screen.login
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,64 +17,62 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.uam.ecoparqueo.vmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (String) -> Unit
+    onLoginSuccess: (String) -> Unit,
+    viewModel: LoginViewModel = viewModel()
 ) {
-    val scope = rememberCoroutineScope()
+    val state by viewModel.state.collectAsState()
+    val colorScheme = MaterialTheme.colorScheme
 
-    var nombre by remember { mutableStateOf("") }
-    var tipoUsuario by remember { mutableStateOf("") }
-    var loading by remember { mutableStateOf(false) }
-    var mensajeError by remember { mutableStateOf("") }
+    LaunchedEffect(state.loginExitoso) {
+        if (state.loginExitoso) {
+            onLoginSuccess(state.tipoUsuario)
+            viewModel.onLoginHandled()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF1B5E20),
-                        Color(0xFF4CAF50)
-                    )
+                    colors = listOf(colorScheme.primary, colorScheme.tertiary)
                 )
             ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Spacer(modifier = Modifier.height(70.dp))
 
         Box(
             modifier = Modifier
                 .size(100.dp)
                 .clip(CircleShape)
-                .background(Color.White),
+                .background(colorScheme.surface),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "EP",
                 fontSize = 40.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1B5E20)
+                color = colorScheme.primary
             )
         }
 
@@ -85,7 +82,7 @@ fun LoginScreen(
             text = "EcoParqueo UAM",
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = colorScheme.onPrimary
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -93,7 +90,7 @@ fun LoginScreen(
         Text(
             text = "Sistema de gestión de parqueo",
             fontSize = 16.sp,
-            color = Color.White
+            color = colorScheme.onPrimary
         )
 
         Spacer(modifier = Modifier.height(35.dp))
@@ -103,24 +100,25 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
-            elevation = CardDefaults.cardElevation(8.dp)
+            elevation = CardDefaults.cardElevation(8.dp),
+            colors = CardDefaults.cardColors(containerColor = colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.Center
             ) {
-
                 Text(
                     text = "Inicio de sesión",
                     fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
                 OutlinedTextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
+                    value = state.nombre,
+                    onValueChange = { viewModel.onNombreChange(it) },
                     label = { Text("Nombre del usuario") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
@@ -131,84 +129,67 @@ fun LoginScreen(
                 Text(
                     text = "Seleccione tipo de usuario:",
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
-                    onClick = {
-                        tipoUsuario = "Estudiante"
-                        mensajeError = ""
-                    },
+                    onClick = { viewModel.onTipoUsuarioChange("Estudiante") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (tipoUsuario == "Estudiante")
-                            Color(0xFF1B5E20)
+                        containerColor = if (state.tipoUsuario == "Estudiante")
+                            colorScheme.primary
                         else
-                            Color.Gray
+                            colorScheme.outline
                     )
                 ) {
-                    Text("Estudiante")
+                    Text("Estudiante", color = colorScheme.onPrimary)
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Button(
-                    onClick = {
-                        tipoUsuario = "Guarda"
-                        mensajeError = ""
-                    },
+                    onClick = { viewModel.onTipoUsuarioChange("Guarda") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (tipoUsuario == "Guarda")
-                            Color(0xFF1B5E20)
+                        containerColor = if (state.tipoUsuario == "Guarda")
+                            colorScheme.primary
                         else
-                            Color.Gray
+                            colorScheme.outline
                     )
                 ) {
-                    Text("Guarda de seguridad")
+                    Text("Guarda de seguridad", color = colorScheme.onPrimary)
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                if (mensajeError != "") {
+                if (state.mensajeError.isNotBlank()) {
                     Text(
-                        text = mensajeError,
-                        color = Color.Red
+                        text = state.mensajeError,
+                        color = colorScheme.error
                     )
-
                     Spacer(modifier = Modifier.height(10.dp))
                 }
 
                 Button(
-                    onClick = {
-                        if (nombre == "" || tipoUsuario == "") {
-                            mensajeError = "Debe ingresar su nombre y seleccionar un usuario"
-                        } else {
-                            scope.launch {
-                                loading = true
-                                delay(1000)
-                                loading = false
-                                onLoginSuccess(tipoUsuario)
-                            }
-                        }
-                    },
+                    onClick = { viewModel.onLogin() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1B5E20)
+                        containerColor = colorScheme.primary
                     )
                 ) {
-                    if (loading) {
+                    if (state.loading) {
                         CircularProgressIndicator(
-                            color = Color.White,
+                            color = colorScheme.onPrimary,
                             modifier = Modifier.size(24.dp)
                         )
                     } else {
-                        Text("Ingresar")
+                        Text("Ingresar", color = colorScheme.onPrimary)
                     }
                 }
             }
