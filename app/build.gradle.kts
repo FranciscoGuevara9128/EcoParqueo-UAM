@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -58,4 +59,24 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    //NAVIGATION
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
+
+    //VIEWMODEL
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    //RETROFIT
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+    //ROOM
+
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    annotationProcessor(libs.androidx.room.compiler)
 }

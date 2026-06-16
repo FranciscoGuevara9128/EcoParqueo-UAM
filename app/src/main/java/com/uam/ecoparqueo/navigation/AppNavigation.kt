@@ -6,10 +6,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.uam.ecoparqueo.ui.screens.estudiante.RegistroVehicular
-import com.uam.ecoparqueo.ui.screens.login.LoginScreen
-import com.uam.ecoparqueo.ui.screens.seguridad.ControlAccesoVehicular
-import com.uam.ecoparqueo.ui.screens.seguridad.SeleccionSeguridad
+import com.uam.ecoparqueo.screen.estudiante.RegistroVehicular
+import com.uam.ecoparqueo.screen.login.LoginScreen
+import com.uam.ecoparqueo.screen.seguridad.ControlAccesoVehicular
+import com.uam.ecoparqueo.screen.seguridad.SeleccionSeguridad
 import kotlinx.serialization.Serializable
 
 @Serializable

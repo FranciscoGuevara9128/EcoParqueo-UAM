@@ -1,4 +1,4 @@
-package com.uam.ecoparqueo.ui.screens.estudiante
+package com.uam.ecoparqueo.screen.estudiante
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.uam.ecoparqueo.data.Vehiculo
+import com.uam.ecoparqueo.model.Vehiculo
 import com.uam.ecoparqueo.ui.theme.Blanco
 import com.uam.ecoparqueo.ui.theme.GrisInactivo
 import com.uam.ecoparqueo.ui.theme.VerdeOscuro

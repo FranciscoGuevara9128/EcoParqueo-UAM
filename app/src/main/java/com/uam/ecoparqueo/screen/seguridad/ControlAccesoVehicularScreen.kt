@@ -1,4 +1,4 @@
-package com.uam.ecoparqueo.ui.screens.seguridad
+package com.uam.ecoparqueo.screen.seguridad
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column

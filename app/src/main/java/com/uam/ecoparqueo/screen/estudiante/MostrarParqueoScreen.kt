@@ -1,4 +1,4 @@
-package com.uam.ecoparqueo.ui.screens.estudiante
+package com.uam.ecoparqueo.screen.estudiante
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

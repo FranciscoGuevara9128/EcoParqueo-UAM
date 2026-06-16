@@ -1,4 +1,4 @@
-package com.uam.ecoparqueo.data
+package com.uam.ecoparqueo.model
 
 data class Vehiculo(
 	val marca: String,
