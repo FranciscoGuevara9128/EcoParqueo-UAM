@@ -1,4 +1,10 @@
 package com.uam.ecoparqueo
 
-class EcoParqueoApp {
+import android.app.Application
+
+class EcoParqueoApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        Graph.provide(this)
+    }
 }
