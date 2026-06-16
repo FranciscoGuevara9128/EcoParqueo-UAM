@@ -20,7 +20,7 @@ import com.uam.ecoparqueo.model.entity.VehiculoEntity
         ParqueoEntity::class,
         RegistroAccesoEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class EcoParqueoDatabase : RoomDatabase() {
@@ -41,6 +41,17 @@ abstract class EcoParqueoDatabase : RoomDatabase() {
                     "ecoparqueo_database"
                 )
                     .fallbackToDestructiveMigration()
+                    // 2. Agregamos el Callback para precargar el usuario obligatorio
+                    .addCallback(object : RoomDatabase.Callback() {
+                        override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                            super.onCreate(db)
+                            // Insertamos el ID 1 de forma segura. Si ya existe, no se hará nada.
+                            db.execSQL(
+                                "INSERT OR IGNORE INTO usuarios (id, nombre, tipoUsuario, fechaRegistro) " +
+                                        "VALUES (1, 'Estudiante de Prueba', 'Estudiante', ${System.currentTimeMillis()})"
+                            )
+                        }
+                    })
                     .build()
                 INSTANCE = instance
                 instance
