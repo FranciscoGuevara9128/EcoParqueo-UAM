@@ -21,7 +21,7 @@ class VehiculoRepository {
         }
     }
 
-    suspend fun findById(id: Int): ApiResult<Vehiculo> {
+    suspend fun findById(id: String): ApiResult<Vehiculo> {
         return try {
             val response = apiService.findById(id)
             if (response.isSuccessful) {
