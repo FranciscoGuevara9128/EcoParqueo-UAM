@@ -32,4 +32,7 @@ object RetrofitClient {
 
     val parqueoApiService: ParqueoApiService =
         retrofit.create(ParqueoApiService::class.java)
+
+    val usuarioApiService: UsuarioApiService =
+        retrofit.create(UsuarioApiService::class.java)
 }
