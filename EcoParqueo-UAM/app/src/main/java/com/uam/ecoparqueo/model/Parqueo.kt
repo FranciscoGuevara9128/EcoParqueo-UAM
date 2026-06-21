@@ -3,8 +3,9 @@ package com.uam.ecoparqueo.model
 import com.google.gson.annotations.SerializedName
 
 data class Parqueo(
-    @SerializedName("id") val id: Int = 0,
+    @SerializedName("id") val id: String? = null,
     @SerializedName("name") val name: String,
-    @SerializedName("available") val available: Int,
-    @SerializedName("address") val address: String
+    @SerializedName("capacidadTotal") val capacidadTotal: Int,
+    @SerializedName("disponibles") val disponibles: Int,
+    @SerializedName("direccion") val direccion: String
 )

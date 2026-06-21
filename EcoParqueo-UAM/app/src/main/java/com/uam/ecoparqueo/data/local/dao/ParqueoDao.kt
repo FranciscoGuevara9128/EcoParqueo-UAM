@@ -2,6 +2,7 @@ package com.uam.ecoparqueo.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.uam.ecoparqueo.model.entity.ParqueoEntity
@@ -9,8 +10,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ParqueoDao {
-    @Insert
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(parqueo: ParqueoEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(parqueos: List<ParqueoEntity>)
+
+    @Query("DELETE FROM parqueos")
+    suspend fun deleteAll()
 
     @Query("SELECT * FROM parqueos")
     fun getAllParqueosFlow(): Flow<List<ParqueoEntity>>

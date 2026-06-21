@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://10.0.2.2:8080/api/"
+    private const val BASE_URL = "http://192.168.1.26:8181/api/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -32,4 +32,7 @@ object RetrofitClient {
 
     val parqueoApiService: ParqueoApiService =
         retrofit.create(ParqueoApiService::class.java)
+
+    val usuarioApiService: UsuarioApiService =
+        retrofit.create(UsuarioApiService::class.java)
 }

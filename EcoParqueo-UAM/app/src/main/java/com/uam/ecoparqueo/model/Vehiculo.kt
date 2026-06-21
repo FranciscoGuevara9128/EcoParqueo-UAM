@@ -3,7 +3,7 @@ package com.uam.ecoparqueo.model
 import com.google.gson.annotations.SerializedName
 
 data class Vehiculo(
-	@SerializedName("id") val id: Int = 0,
+	@SerializedName("id") val id: String? = null,
 	@SerializedName("marca") val marca: String,
 	@SerializedName("numero_placa") val numeroPlaca: String,
 	@SerializedName("modelo") val modelo: String,

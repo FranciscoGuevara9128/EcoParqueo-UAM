@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uam.ecoparqueo.model.entity.ParqueoEntity
 import com.uam.ecoparqueo.repository.ParqueoRepository
+import com.uam.ecoparqueo.service.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -17,6 +17,7 @@ data class SeleccionParqueoState(
     val parqueos: List<ParqueoEntity> = emptyList(),
     val selectedName: String? = null,
     val loading: Boolean = false,
+    val errorMessage: String = "",
     val tab: Int = 2
 ) {
     val parqueosFiltrados: List<ParqueoEntity>
@@ -45,6 +46,11 @@ class SeleccionParqueoViewModel : ViewModel() {
         internal.copy(parqueos = parqueosBD)
     }.stateIn(viewModelScope, SharingStarted.Lazily, SeleccionParqueoState())
 
+    // Al crear el ViewModel se sincronizan los parqueos desde la API
+    init {
+        cargarParqueos()
+    }
+
     fun onTabChange(tab: Int) {
         _internalState.update { it.copy(tab = tab) }
     }
@@ -55,15 +61,28 @@ class SeleccionParqueoViewModel : ViewModel() {
         }
     }
 
+    // Llamado por el botón "Actualizar disponibilidad" en la UI
     fun actualizarDisponibilidad() {
-        // En Room no necesitamos hacer nada especial porque Room nos notifica,
-        // pero podemos simular el loading si se desea.
+        cargarParqueos()
     }
 
     fun decrementarDisponibilidad() {
         val selected = state.value.parqueoSeleccionado ?: return
         viewModelScope.launch {
             repository.disminuirDisponibilidad(selected.id)
+        }
+    }
+
+    private fun cargarParqueos() {
+        viewModelScope.launch {
+            _internalState.update { it.copy(loading = true, errorMessage = "") }
+            when (val result = repository.refresh()) {
+                is ApiResult.Error -> _internalState.update {
+                    it.copy(errorMessage = result.message)
+                }
+                else -> Unit
+            }
+            _internalState.update { it.copy(loading = false) }
         }
     }
 }

@@ -157,6 +157,24 @@ fun SeleccionParqueoScreen(
                 }
             }
 
+            // Mensaje de error de red
+            if (state.errorMessage.isNotBlank()) {
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = "⚠ Sin conexión: ${state.errorMessage}",
+                        color = colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(

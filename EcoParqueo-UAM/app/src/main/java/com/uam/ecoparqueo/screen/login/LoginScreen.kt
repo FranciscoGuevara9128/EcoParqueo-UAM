@@ -12,11 +12,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -27,8 +34,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,6 +54,7 @@ fun LoginScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
+    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(state.loginExitoso) {
         if (state.loginExitoso) {
@@ -61,6 +75,7 @@ fun LoginScreen(
     ) {
         Spacer(modifier = Modifier.height(70.dp))
 
+        // Logo
         Box(
             modifier = Modifier
                 .size(100.dp)
@@ -95,6 +110,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(35.dp))
 
+        // Tarjeta de formulario
         Card(
             shape = RoundedCornerShape(24.dp),
             modifier = Modifier
@@ -116,55 +132,62 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
+                // Campo nombre
                 OutlinedTextField(
                     value = state.nombre,
                     onValueChange = { viewModel.onNombreChange(it) },
-                    label = { Text("Nombre del usuario") },
+                    label = { Text("Nombre de usuario") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Campo contraseña con toggle de visibilidad
+                OutlinedTextField(
+                    value = state.contrasena,
+                    onValueChange = { viewModel.onContrasenaChange(it) },
+                    label = { Text("Contraseña") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = if (state.contrasenaVisible)
+                        VisualTransformation.None
+                    else
+                        PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                            viewModel.onLogin()
+                        }
+                    ),
+                    trailingIcon = {
+                        IconButton(onClick = { viewModel.onToggleContrasenaVisible() }) {
+                            Icon(
+                                imageVector = if (state.contrasenaVisible)
+                                    Icons.Filled.Visibility
+                                else
+                                    Icons.Filled.VisibilityOff,
+                                contentDescription = if (state.contrasenaVisible)
+                                    "Ocultar contraseña"
+                                else
+                                    "Mostrar contraseña",
+                                tint = colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Text(
-                    text = "Seleccione tipo de usuario:",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Button(
-                    onClick = { viewModel.onTipoUsuarioChange("Estudiante") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.tipoUsuario == "Estudiante")
-                            colorScheme.primary
-                        else
-                            colorScheme.outline
-                    )
-                ) {
-                    Text("Estudiante", color = colorScheme.onPrimary)
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Button(
-                    onClick = { viewModel.onTipoUsuarioChange("Guarda") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (state.tipoUsuario == "Guarda")
-                            colorScheme.primary
-                        else
-                            colorScheme.outline
-                    )
-                ) {
-                    Text("Guarda de seguridad", color = colorScheme.onPrimary)
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
+                // Mensaje de error
                 if (state.mensajeError.isNotBlank()) {
                     Text(
                         text = state.mensajeError,
@@ -173,6 +196,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(10.dp))
                 }
 
+                // Botón ingresar
                 Button(
                     onClick = { viewModel.onLogin() },
                     modifier = Modifier
