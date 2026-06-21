@@ -1,7 +1,9 @@
 package org.uam.ecoparqueouam_service.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.uam.ecoparqueouam_service.model.LoginRequest;
 import org.uam.ecoparqueouam_service.model.Usuario;
 import org.uam.ecoparqueouam_service.service.ServiceUsuario;
 
@@ -28,9 +30,19 @@ public class ControllerUsuario {
         return ResponseEntity.ok(service.findById(id));
     }
 
-    // Endpoint de login: el cliente envía el nombre y obtiene el usuario completo con su tipo
-    @GetMapping("/login")
-    public ResponseEntity<Usuario> findByNombre(@RequestParam String nombre) {
+    // Endpoint de login: POST con nombre + contraseña en el body
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+        try {
+            return ResponseEntity.ok(service.login(request));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
+
+    // Búsqueda por nombre para uso interno (sin validar contraseña)
+    @GetMapping("/nombre/{nombre}")
+    public ResponseEntity<Usuario> findByNombre(@PathVariable String nombre) {
         return ResponseEntity.ok(service.findByNombre(nombre));
     }
 

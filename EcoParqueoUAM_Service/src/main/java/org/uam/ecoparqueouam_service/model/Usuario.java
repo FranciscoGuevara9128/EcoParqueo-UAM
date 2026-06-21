@@ -1,5 +1,6 @@
 package org.uam.ecoparqueouam_service.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,11 @@ public class Usuario extends BaseEntity {
     // Valores esperados: "Estudiante" | "Guarda"
     @Column(name = "tipo_usuario", nullable = false)
     private String tipoUsuario;
+
+    // Hash BCrypt — nunca se serializa en respuestas JSON
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Column(nullable = false)
+    private String contrasena;
 
     @Column(name = "fecha_registro")
     private LocalDateTime fechaRegistro;
@@ -36,6 +42,9 @@ public class Usuario extends BaseEntity {
 
     public String getTipoUsuario() { return tipoUsuario; }
     public void setTipoUsuario(String tipoUsuario) { this.tipoUsuario = tipoUsuario; }
+
+    public String getContrasena() { return contrasena; }
+    public void setContrasena(String contrasena) { this.contrasena = contrasena; }
 
     public LocalDateTime getFechaRegistro() { return fechaRegistro; }
     public void setFechaRegistro(LocalDateTime fechaRegistro) { this.fechaRegistro = fechaRegistro; }
