@@ -20,7 +20,7 @@ import com.uam.ecoparqueo.model.entity.VehiculoEntity
         ParqueoEntity::class,
         RegistroAccesoEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class EcoParqueoDatabase : RoomDatabase() {

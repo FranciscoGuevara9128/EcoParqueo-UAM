@@ -29,12 +29,14 @@ public class ControllerParqueo {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Parqueo> update(@RequestBody Parqueo parqueo){
+    public ResponseEntity<Parqueo> update(@RequestBody Parqueo parqueo) {
         Parqueo p = service.findById(parqueo.getId());
         p.setName(parqueo.getName());
         p.setCapacidadTotal(parqueo.getCapacidadTotal());
         p.setDisponibles(parqueo.getDisponibles());
         p.setDireccion(parqueo.getDireccion());
+        p.setLatitud(parqueo.getLatitud());
+        p.setLongitud(parqueo.getLongitud());
         return ResponseEntity.ok(service.save(p));
     }
 

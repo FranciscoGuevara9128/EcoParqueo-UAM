@@ -12,6 +12,8 @@ public class Parqueo extends BaseEntity{
     private Integer  capacidadTotal;
     private Integer disponibles;
     private String direccion;
+    private Double latitud;
+    private Double longitud;
 
     public String getName() {
         return name;
@@ -43,5 +45,21 @@ public class Parqueo extends BaseEntity{
 
     public void setDisponibles(Integer disponibles) {
         this.disponibles = disponibles;
+    }
+
+    public Double getLatitud() {
+        return latitud;
+    }
+
+    public void setLatitud(Double latitud) {
+        this.latitud = latitud;
+    }
+
+    public Double getLongitud() {
+        return longitud;
+    }
+
+    public void setLongitud(Double longitud) {
+        this.longitud = longitud;
     }
 }

@@ -76,4 +76,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     annotationProcessor(libs.androidx.room.compiler)
+
+    // Google Maps Compose
+    implementation(libs.maps.compose)
 }

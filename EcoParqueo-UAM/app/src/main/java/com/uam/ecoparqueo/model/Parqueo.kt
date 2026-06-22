@@ -7,5 +7,7 @@ data class Parqueo(
     @SerializedName("name") val name: String,
     @SerializedName("capacidadTotal") val capacidadTotal: Int,
     @SerializedName("disponibles") val disponibles: Int,
-    @SerializedName("direccion") val direccion: String
+    @SerializedName("direccion") val direccion: String,
+    @SerializedName("latitud") val latitud: Double?= null,
+    @SerializedName("longitud") val longitud: Double?= null
 )

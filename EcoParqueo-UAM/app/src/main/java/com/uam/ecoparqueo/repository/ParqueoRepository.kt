@@ -28,7 +28,9 @@ class ParqueoRepository {
                         nombre       = parqueo.name,
                         capacidadTotal = parqueo.capacidadTotal,
                         disponibles  = parqueo.disponibles,
-                        direccion    = parqueo.direccion
+                        direccion    = parqueo.direccion,
+                        latitud = parqueo.latitud,
+                        longitud = parqueo.longitud
                     )
                 }
                 parqueoDao.insertAll(entidades)

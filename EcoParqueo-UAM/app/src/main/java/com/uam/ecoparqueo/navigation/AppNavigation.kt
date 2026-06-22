@@ -25,6 +25,7 @@ import com.uam.ecoparqueo.screen.seguridad.ControlAccesoVehicularScreen
 import com.uam.ecoparqueo.screen.seguridad.EstadisticasScreen
 import com.uam.ecoparqueo.screen.seguridad.SeleccionSeguridadScreen
 import kotlinx.serialization.Serializable
+import com.uam.ecoparqueo.screen.admin.AdminParqueoScreen
 
 @Serializable object LoginRoute
 @Serializable object DashboardEstudianteRoute
@@ -36,7 +37,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class ControlAccesoVehicularRoute(val nombreParqueo: String)
 @Serializable object GestionVehiculosRoute
 @Serializable object EstadisticasRoute
-
+@Serializable object AdminParqueoRoute
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
@@ -68,13 +69,30 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         }
 
         composable<DashboardGuardaRoute> {
-            Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
                 Text("Panel de Guarda", style = MaterialTheme.typography.headlineMedium)
-                Button(onClick = { navController.navigate(SeleccionSeguridadRoute) }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                Button(
+                    onClick = { navController.navigate(SeleccionSeguridadRoute) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                ) {
                     Text("Control de Acceso")
                 }
-                Button(onClick = { navController.navigate(EstadisticasRoute) }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                Button(
+                    onClick = { navController.navigate(EstadisticasRoute) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                ) {
                     Text("Estadísticas del Día")
+                }
+                // Nuevo botón para registrar parqueos
+                Button(
+                    onClick = { navController.navigate(AdminParqueoRoute) },
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                ) {
+                    Text("Registrar Parqueo")
                 }
             }
         }
@@ -112,6 +130,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 
         composable<EstadisticasRoute> {
             EstadisticasScreen(onVolver = { navController.popBackStack() })
+        }
+
+        composable<AdminParqueoRoute> {
+            AdminParqueoScreen(onVolver = { navController.popBackStack() })
         }
     }
 }
