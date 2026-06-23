@@ -21,25 +21,30 @@ class ParqueoRepository {
             val response = apiService.findAll()
             if (response.isSuccessful) {
                 val remoto = response.body() ?: emptyList()
-                // Borramos y reinsertamos para reflejar cambios del servidor
-                parqueoDao.deleteAll()
-                val entidades = remoto.map { parqueo ->
-                    ParqueoEntity(
-                        nombre       = parqueo.name,
-                        capacidadTotal = parqueo.capacidadTotal,
-                        disponibles  = parqueo.disponibles,
-                        direccion    = parqueo.direccion,
-                        latitud = parqueo.latitud,
-                        longitud = parqueo.longitud
-                    )
+                // Solo sincroniza desde el servidor si este devuelve parqueos,
+                // si no, se mantienen los parqueos locales precargados
+                if (remoto.isNotEmpty()) {
+                    parqueoDao.deleteAll()
+                    val entidades = remoto.map { parqueo ->
+                        ParqueoEntity(
+                            nombre         = parqueo.name,
+                            capacidadTotal = parqueo.capacidadTotal,
+                            disponibles    = parqueo.disponibles,
+                            direccion      = parqueo.direccion,
+                            latitud        = parqueo.latitud,
+                            longitud       = parqueo.longitud
+                        )
+                    }
+                    parqueoDao.insertAll(entidades)
                 }
-                parqueoDao.insertAll(entidades)
                 ApiResult.Success(Unit)
             } else {
-                ApiResult.Error("Error ${response.code()}: ${response.message()}")
+                // Error del servidor: no borramos los datos locales
+                ApiResult.Success(Unit)
             }
         } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Error de conexión al cargar parqueos")
+            // Sin conexión: los parqueos locales siguen disponibles
+            ApiResult.Success(Unit)
         }
     }
 
