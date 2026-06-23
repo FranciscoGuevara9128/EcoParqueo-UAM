@@ -26,20 +26,26 @@ object ParqueosLocales {
         ParqueoEntity(
             id             = 1,
             nombre         = "Parqueo Plazoleta",
-            capacidadTotal = 30,
-            disponibles    = 30,
+            capacidadTotal = 200,
+            disponibles    = 200,
             direccion      = "Frente a la plazoleta principal, UAM",
-            latitud        = 12.13301,   // <-- reemplaza con tu clic derecho en Maps
-            longitud       = -86.27289   // <-- reemplaza con tu clic derecho en Maps
+            12.109286199300668, -86.25694437766967
         ),
         ParqueoEntity(
             id             = 2,
             nombre         = "Parqueo Recepción",
-            capacidadTotal = 20,
-            disponibles    = 20,
+            capacidadTotal = 300,
+            disponibles    = 300,
             direccion      = "Entrada principal, UAM",
-            latitud        = 12.13265,   // <-- reemplaza con tu clic derecho en Maps
-            longitud       = -86.27340   // <-- reemplaza con tu clic derecho en Maps
+            12.108470246581334, -86.25633540354046
+        ),
+        ParqueoEntity(
+            id             = 3,
+            nombre         = "Parqueo Clinicas",
+            capacidadTotal = 30,
+            disponibles    = 30,
+            direccion      = "Frente a las clínicas, UAM",
+            12.107609891543099, -86.25707959414085
         )
         // Agrega más parqueos aquí siguiendo el mismo formato
     )
