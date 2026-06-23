@@ -42,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uam.ecoparqueo.vmodel.SeleccionParqueoViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.uam.ecoparqueo.screen.estudiante.ParqueoMapView
 
 @Composable
 fun SeleccionParqueoScreen(
@@ -117,18 +118,15 @@ fun SeleccionParqueoScreen(
                 colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
             ) {
-                Box(
-                    modifier = Modifier
+                ParqueoMapView(
+                    parqueos     = state.parqueos,
+                    selectedName = state.selectedName,
+                    zoomLatitud  = state.zoomLatitud,
+                    zoomLongitud = state.zoomLongitud,
+                    modifier     = Modifier
                         .fillMaxWidth()
                         .height(220.dp)
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Espacio reservado para mapa\n(Google Maps API)",
-                        color = colorScheme.onSurfaceVariant
-                    )
-                }
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))

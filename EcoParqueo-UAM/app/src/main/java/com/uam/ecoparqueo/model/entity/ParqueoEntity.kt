@@ -9,5 +9,7 @@ data class ParqueoEntity(
     val nombre: String,
     val capacidadTotal: Int,
     val disponibles: Int,
-    val direccion: String
+    val direccion: String,
+    val latitud: Double? = null,
+    val longitud: Double? = null
 )

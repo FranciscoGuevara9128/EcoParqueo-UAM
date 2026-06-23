@@ -18,7 +18,10 @@ data class SeleccionParqueoState(
     val selectedName: String? = null,
     val loading: Boolean = false,
     val errorMessage: String = "",
-    val tab: Int = 2
+    val tab: Int = 2,
+    // Coordenadas del parqueo seleccionado para el zoom del mapa
+    val zoomLatitud: Double? = null,
+    val zoomLongitud: Double? = null
 ) {
     val parqueosFiltrados: List<ParqueoEntity>
         get() = when (tab) {
@@ -46,7 +49,6 @@ class SeleccionParqueoViewModel : ViewModel() {
         internal.copy(parqueos = parqueosBD)
     }.stateIn(viewModelScope, SharingStarted.Lazily, SeleccionParqueoState())
 
-    // Al crear el ViewModel se sincronizan los parqueos desde la API
     init {
         cargarParqueos()
     }
@@ -55,13 +57,18 @@ class SeleccionParqueoViewModel : ViewModel() {
         _internalState.update { it.copy(tab = tab) }
     }
 
+    // Al seleccionar un parqueo también actualizamos las coordenadas de zoom
     fun onParqueoSelected(name: String?) {
+        val parqueo = _internalState.value.parqueos.find { it.nombre == name }
         _internalState.update {
-            it.copy(selectedName = if (it.selectedName == name) null else name)
+            it.copy(
+                selectedName = if (it.selectedName == name) null else name,
+                zoomLatitud  = if (it.selectedName == name) null else parqueo?.latitud,
+                zoomLongitud = if (it.selectedName == name) null else parqueo?.longitud
+            )
         }
     }
 
-    // Llamado por el botón "Actualizar disponibilidad" en la UI
     fun actualizarDisponibilidad() {
         cargarParqueos()
     }

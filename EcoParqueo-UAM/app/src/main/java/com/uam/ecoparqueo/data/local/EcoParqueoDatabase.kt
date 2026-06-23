@@ -12,6 +12,9 @@ import com.uam.ecoparqueo.model.entity.ParqueoEntity
 import com.uam.ecoparqueo.model.entity.RegistroAccesoEntity
 import com.uam.ecoparqueo.model.entity.UsuarioEntity
 import com.uam.ecoparqueo.model.entity.VehiculoEntity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Database(
     entities = [
@@ -20,7 +23,7 @@ import com.uam.ecoparqueo.model.entity.VehiculoEntity
         ParqueoEntity::class,
         RegistroAccesoEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class EcoParqueoDatabase : RoomDatabase() {
@@ -41,21 +44,42 @@ abstract class EcoParqueoDatabase : RoomDatabase() {
                     "ecoparqueo_database"
                 )
                     .fallbackToDestructiveMigration()
-                    // 2. Agregamos el Callback para precargar el usuario obligatorio
                     .addCallback(object : RoomDatabase.Callback() {
+
                         override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            // Insertamos el ID 1 de forma segura. Si ya existe, no se hará nada.
+
+                            // Usuario de prueba
                             db.execSQL(
                                 "INSERT OR IGNORE INTO usuarios (id, nombre, tipoUsuario, fechaRegistro) " +
                                         "VALUES (1, 'Estudiante de Prueba', 'Estudiante', ${System.currentTimeMillis()})"
                             )
+                        }
+
+                        // onOpen se ejecuta cada vez que abre la BD,
+                        // usamos esto para insertar los parqueos si no existen
+                        override fun onOpen(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                            super.onOpen(db)
+                            INSTANCE?.let { database ->
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    insertarParqueosLocales(database.parqueoDao())
+                                }
+                            }
                         }
                     })
                     .build()
                 INSTANCE = instance
                 instance
             }
+        }
+
+        /**
+         * Inserta los parqueos definidos en ParqueosLocales solo si
+         * no existen ya en la base de datos, usando REPLACE para
+         * actualizar coordenadas si cambian en el código.
+         */
+        private suspend fun insertarParqueosLocales(parqueoDao: ParqueoDao) {
+            parqueoDao.insertAll(ParqueosLocales.lista)
         }
     }
 }
