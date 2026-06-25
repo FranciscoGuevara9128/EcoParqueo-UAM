@@ -25,8 +25,8 @@ data class GestionVehiculosState(
 class GestionVehiculosViewModel : ViewModel() {
     private val vehiculoDao = Graph.database.vehiculoDao()
 
-    // Suponiendo ID de usuario 1 (estudiante actual)
-    val misVehiculos = vehiculoDao.getVehiculosDeUsuario(1)
+    // Suponiendo ID de usuario de prueba (estudiante actual)
+    val misVehiculos = vehiculoDao.getVehiculosDeUsuario("d35ac9db-2893-4605-8fd2-01afc4fd5dfb")
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _state = MutableStateFlow(GestionVehiculosState())
@@ -45,12 +45,15 @@ class GestionVehiculosViewModel : ViewModel() {
             _state.update { it.copy(isLoading = true) }
 
             val nuevoVehiculo = VehiculoEntity(
-                usuarioId = 1,
-                placa = current.placaInput,
+                id = java.util.UUID.randomUUID().toString(),
+                usuarioId = "d35ac9db-2893-4605-8fd2-01afc4fd5dfb",
+                numeroPlaca = current.placaInput,
                 marca = current.marcaInput,
                 modelo = current.modeloInput,
-                color = current.colorInput,
-                tipo = "CARRO"
+                anio = "2026",
+                colorVehiculo = current.colorInput,
+                tipoVehiculo = "CARRO",
+                notasAdicionales = ""
             )
 
             vehiculoDao.insert(nuevoVehiculo)

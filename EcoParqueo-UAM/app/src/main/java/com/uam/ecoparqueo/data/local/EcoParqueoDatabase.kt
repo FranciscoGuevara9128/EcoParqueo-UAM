@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
         ParqueoEntity::class,
         RegistroAccesoEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class EcoParqueoDatabase : RoomDatabase() {
@@ -49,10 +49,10 @@ abstract class EcoParqueoDatabase : RoomDatabase() {
                         override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                             super.onCreate(db)
 
-                            // Usuario de prueba
+                            // Usuario de prueba (ID en formato UUID / String)
                             db.execSQL(
                                 "INSERT OR IGNORE INTO usuarios (id, nombre, tipoUsuario, fechaRegistro) " +
-                                        "VALUES (1, 'Estudiante de Prueba', 'Estudiante', ${System.currentTimeMillis()})"
+                                        "VALUES ('d35ac9db-2893-4605-8fd2-01afc4fd5dfb', 'Estudiante de Prueba', 'Estudiante', ${System.currentTimeMillis()})"
                             )
                         }
 

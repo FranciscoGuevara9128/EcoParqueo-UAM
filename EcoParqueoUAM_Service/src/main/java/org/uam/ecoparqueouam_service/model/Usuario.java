@@ -1,6 +1,7 @@
 package org.uam.ecoparqueouam_service.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,7 @@ public class Usuario extends BaseEntity {
 
     // Un usuario puede tener múltiples vehículos registrados
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"usuario", "handler", "hibernateLazyInitializer"})
     private List<Vehiculo> vehiculos = new ArrayList<>();
 
     @PrePersist

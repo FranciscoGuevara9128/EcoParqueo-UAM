@@ -12,8 +12,8 @@ interface VehiculoDao {
     suspend fun insert(vehiculo: VehiculoEntity): Long
 
     @Query("SELECT * FROM vehiculos WHERE usuarioId = :usuarioId")
-    fun getVehiculosDeUsuario(usuarioId: Int): Flow<List<VehiculoEntity>>
+    fun getVehiculosDeUsuario(usuarioId: String): Flow<List<VehiculoEntity>>
 
-    @Query("SELECT * FROM vehiculos WHERE placa = :placa")
+    @Query("SELECT * FROM vehiculos WHERE numeroPlaca = :placa")
     suspend fun getVehiculoByPlaca(placa: String): VehiculoEntity?
 }

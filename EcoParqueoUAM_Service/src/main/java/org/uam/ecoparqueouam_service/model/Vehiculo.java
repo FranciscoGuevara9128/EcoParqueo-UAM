@@ -1,6 +1,7 @@
 package org.uam.ecoparqueouam_service.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
@@ -33,6 +34,7 @@ public class Vehiculo extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = true)
     @JsonProperty("usuario")
+    @JsonIgnoreProperties({"vehiculos", "handler", "hibernateLazyInitializer"})
     private Usuario usuario;
 
     // ── Getters y Setters ──────────────────────────────────────────────

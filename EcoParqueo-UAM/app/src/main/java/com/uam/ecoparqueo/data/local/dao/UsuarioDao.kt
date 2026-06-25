@@ -12,7 +12,7 @@ interface UsuarioDao {
     suspend fun insert(usuario: UsuarioEntity): Long
 
     @Query("SELECT * FROM usuarios WHERE id = :id")
-    suspend fun getUsuarioById(id: Int): UsuarioEntity?
+    suspend fun getUsuarioById(id: String): UsuarioEntity?
 
     @Query("SELECT * FROM usuarios")
     fun getAllUsuarios(): Flow<List<UsuarioEntity>>

@@ -27,6 +27,7 @@ class ParqueoRepository {
                     parqueoDao.deleteAll()
                     val entidades = remoto.map { parqueo ->
                         ParqueoEntity(
+                            id             = parqueo.id ?: java.util.UUID.randomUUID().toString(),
                             nombre         = parqueo.name,
                             capacidadTotal = parqueo.capacidadTotal,
                             disponibles    = parqueo.disponibles,
@@ -48,11 +49,11 @@ class ParqueoRepository {
         }
     }
 
-    suspend fun disminuirDisponibilidad(id: Int) {
+    suspend fun disminuirDisponibilidad(id: String) {
         parqueoDao.disminuirDisponibilidad(id)
     }
 
-    suspend fun aumentarDisponibilidad(id: Int) {
+    suspend fun aumentarDisponibilidad(id: String) {
         parqueoDao.aumentarDisponibilidad(id)
     }
 }

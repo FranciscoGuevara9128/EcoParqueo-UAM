@@ -98,8 +98,8 @@ fun GestionVehiculosScreen(
                             Text("🚗", style = MaterialTheme.typography.headlineMedium)
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
-                                Text(vehiculo.placa, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-                                Text("${vehiculo.marca} ${vehiculo.modelo} - ${vehiculo.color}", style = MaterialTheme.typography.bodyMedium)
+                                Text(vehiculo.numeroPlaca, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                                Text("${vehiculo.marca} ${vehiculo.modelo} - ${vehiculo.colorVehiculo}", style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
