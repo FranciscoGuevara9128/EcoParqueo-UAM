@@ -16,7 +16,7 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.uam.ecoparqueo.model.entity.ParqueoEntity
 
-private val UAM_LOCATION = LatLng(12.1328, -86.2734)
+private val UAM_LOCATION = LatLng(12.108503522103808, -86.25693253419533) // Coordenadas del campus UAM
 private const val ZOOM_CAMPUS  = 16f
 private const val ZOOM_PARQUEO = 19f
 
