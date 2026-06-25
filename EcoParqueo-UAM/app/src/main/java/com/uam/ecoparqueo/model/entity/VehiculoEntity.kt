@@ -16,11 +16,13 @@ import androidx.room.PrimaryKey
     ]
 )
 data class VehiculoEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val usuarioId: Int,
-    val placa: String,
+    @PrimaryKey val id: String,
+    val usuarioId: String,
+    val numeroPlaca: String,
     val marca: String,
     val modelo: String,
-    val color: String,
-    val tipo: String
+    val anio: String,
+    val colorVehiculo: String,
+    val tipoVehiculo: String,
+    val notasAdicionales: String
 )

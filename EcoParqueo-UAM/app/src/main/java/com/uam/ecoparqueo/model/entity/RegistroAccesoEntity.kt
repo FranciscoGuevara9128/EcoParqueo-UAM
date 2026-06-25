@@ -23,8 +23,8 @@ import androidx.room.PrimaryKey
 )
 data class RegistroAccesoEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val vehiculoId: Int,
-    val parqueoId: Int,
+    val vehiculoId: String,
+    val parqueoId: String,
     val fechaHoraIngreso: Long = System.currentTimeMillis(),
     val fechaHoraSalida: Long? = null,
     val estado: String // "DENTRO", "FUERA"

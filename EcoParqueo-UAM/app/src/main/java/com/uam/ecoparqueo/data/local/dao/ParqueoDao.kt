@@ -27,8 +27,8 @@ interface ParqueoDao {
     suspend fun getParqueoByNombre(nombre: String): ParqueoEntity?
 
     @Query("UPDATE parqueos SET disponibles = disponibles - 1 WHERE id = :id AND disponibles > 0")
-    suspend fun disminuirDisponibilidad(id: Int)
+    suspend fun disminuirDisponibilidad(id: String)
 
     @Query("UPDATE parqueos SET disponibles = disponibles + 1 WHERE id = :id AND disponibles < capacidadTotal")
-    suspend fun aumentarDisponibilidad(id: Int)
+    suspend fun aumentarDisponibilidad(id: String)
 }

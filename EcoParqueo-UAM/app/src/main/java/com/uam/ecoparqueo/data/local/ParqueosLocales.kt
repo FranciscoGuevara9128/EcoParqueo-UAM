@@ -20,11 +20,11 @@ import com.uam.ecoparqueo.model.entity.ParqueoEntity
  * El primer número es la latitud y el segundo la longitud
  */
 object ParqueosLocales {
-
+ 
     val lista = listOf(
         // Lista de ejemplos de parqueos, falta poner las coordenadas reales
         ParqueoEntity(
-            id             = 1,
+            id             = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
             nombre         = "Parqueo Plazoleta",
             capacidadTotal = 200,
             disponibles    = 200,
@@ -32,7 +32,7 @@ object ParqueosLocales {
             12.109286199300668, -86.25694437766967
         ),
         ParqueoEntity(
-            id             = 2,
+            id             = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
             nombre         = "Parqueo Recepción",
             capacidadTotal = 300,
             disponibles    = 300,
@@ -40,7 +40,7 @@ object ParqueosLocales {
             12.108470246581334, -86.25633540354046
         ),
         ParqueoEntity(
-            id             = 3,
+            id             = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13",
             nombre         = "Parqueo Clinicas",
             capacidadTotal = 30,
             disponibles    = 30,
