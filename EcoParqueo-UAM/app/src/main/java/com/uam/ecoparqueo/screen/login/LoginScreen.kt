@@ -1,20 +1,26 @@
 package com.uam.ecoparqueo.screen.login
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.align
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -43,6 +49,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -57,6 +64,7 @@ fun LoginScreen(
     val state by viewModel.state.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
     val focusManager = LocalFocusManager.current
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(state.loginExitoso) {
         if (state.loginExitoso) {
@@ -65,172 +73,269 @@ fun LoginScreen(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(colorScheme.primary, colorScheme.tertiary)
-                )
-            ),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(70.dp))
-
-        // Logo
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape)
-                .background(colorScheme.surface),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "EP",
-                fontSize = 40.sp,
-                fontWeight = FontWeight.Bold,
-                color = colorScheme.primary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "EcoParqueo UAM",
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold,
-            color = colorScheme.onPrimary
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Sistema de gestión de parqueo",
-            fontSize = 16.sp,
-            color = colorScheme.onPrimary
-        )
-
-        Spacer(modifier = Modifier.height(35.dp))
-
-        // Tarjeta de formulario
-        Card(
-            shape = RoundedCornerShape(24.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            elevation = CardDefaults.cardElevation(8.dp),
-            colors = CardDefaults.cardColors(containerColor = colorScheme.surface)
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Inicio de sesión",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colorScheme.onSurface
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Campo nombre
-                OutlinedTextField(
-                    value = state.nombre,
-                    onValueChange = { viewModel.onNombreChange(it) },
-                    label = { Text("Nombre de usuario") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    colors = listOf(
+                        colorScheme.primary,
+                        colorScheme.tertiary,
+                        colorScheme.primaryContainer
                     )
                 )
+            )
+    ) {
+        // Círculos decorativos de fondo
+        Box(
+            modifier = Modifier
+                .size(220.dp)
+                .offset(x = 90.dp, y = (-70).dp)
+                .clip(CircleShape)
+                .background(colorScheme.onPrimary.copy(alpha = 0.10f))
+                .align(Alignment.TopEnd)
+        )
 
-                Spacer(modifier = Modifier.height(16.dp))
+        Box(
+            modifier = Modifier
+                .size(170.dp)
+                .offset(x = (-70).dp, y = 80.dp)
+                .clip(CircleShape)
+                .background(colorScheme.onPrimary.copy(alpha = 0.08f))
+                .align(Alignment.TopStart)
+        )
 
-                // Campo contraseña con toggle de visibilidad
-                OutlinedTextField(
-                    value = state.contrasena,
-                    onValueChange = { viewModel.onContrasenaChange(it) },
-                    label = { Text("Contraseña") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    visualTransformation = if (state.contrasenaVisible)
-                        VisualTransformation.None
-                    else
-                        PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            viewModel.onLogin()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(horizontal = 24.dp, vertical = 36.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Logo
+            Box(
+                modifier = Modifier
+                    .size(104.dp)
+                    .clip(CircleShape)
+                    .background(colorScheme.surface.copy(alpha = 0.96f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "EP",
+                    fontSize = 38.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Text(
+                text = "EcoParqueo UAM",
+                fontSize = 31.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = colorScheme.onPrimary,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Sistema inteligente de gestión de parqueo",
+                fontSize = 15.sp,
+                color = colorScheme.onPrimary.copy(alpha = 0.90f),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Tarjeta principal
+            Card(
+                shape = RoundedCornerShape(28.dp),
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 14.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = colorScheme.surface.copy(alpha = 0.98f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 26.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Inicio de sesión",
+                        fontSize = 25.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = "Ingresa tus credenciales para continuar",
+                        fontSize = 14.sp,
+                        color = colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Campo nombre
+                    OutlinedTextField(
+                        value = state.nombre,
+                        onValueChange = { viewModel.onNombreChange(it) },
+                        label = { Text("Nombre de usuario") },
+                        placeholder = { Text("Ejemplo: oscar") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = {
+                                focusManager.moveFocus(FocusDirection.Down)
+                            }
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Campo contraseña
+                    OutlinedTextField(
+                        value = state.contrasena,
+                        onValueChange = { viewModel.onContrasenaChange(it) },
+                        label = { Text("Contraseña") },
+                        placeholder = { Text("Ingresa tu contraseña") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        visualTransformation = if (state.contrasenaVisible)
+                            VisualTransformation.None
+                        else
+                            PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                viewModel.onLogin()
+                            }
+                        ),
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    viewModel.onToggleContrasenaVisible()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = if (state.contrasenaVisible)
+                                        Icons.Filled.Visibility
+                                    else
+                                        Icons.Filled.VisibilityOff,
+                                    contentDescription = if (state.contrasenaVisible)
+                                        "Ocultar contraseña"
+                                    else
+                                        "Mostrar contraseña",
+                                    tint = colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
-                    ),
-                    trailingIcon = {
-                        IconButton(onClick = { viewModel.onToggleContrasenaVisible() }) {
-                            Icon(
-                                imageVector = if (state.contrasenaVisible)
-                                    Icons.Filled.Visibility
-                                else
-                                    Icons.Filled.VisibilityOff,
-                                contentDescription = if (state.contrasenaVisible)
-                                    "Ocultar contraseña"
-                                else
-                                    "Mostrar contraseña",
-                                tint = colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // Mensaje de error mejorado visualmente
+                    if (state.mensajeError.isNotBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(colorScheme.errorContainer)
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        ) {
+                            Text(
+                                text = state.mensajeError,
+                                color = colorScheme.onErrorContainer,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+                    }
+
+                    // Botón ingresar
+                    Button(
+                        onClick = { viewModel.onLogin() },
+                        enabled = !state.loading,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(54.dp),
+                        shape = RoundedCornerShape(18.dp),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 2.dp
+                        ),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorScheme.primary,
+                            contentColor = colorScheme.onPrimary
+                        )
+                    ) {
+                        if (state.loading) {
+                            CircularProgressIndicator(
+                                color = colorScheme.onPrimary,
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "Ingresar",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
-                )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
 
-                // Mensaje de error
-                if (state.mensajeError.isNotBlank()) {
-                    Text(
-                        text = state.mensajeError,
-                        color = colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-
-                // Botón ingresar
-                Button(
-                    onClick = { viewModel.onLogin() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorScheme.primary
-                    )
-                ) {
-                    if (state.loading) {
-                        CircularProgressIndicator(
-                            color = colorScheme.onPrimary,
-                            modifier = Modifier.size(24.dp)
+                    Row(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "¿No tienes una cuenta?",
+                            color = colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
                         )
-                    } else {
-                        Text("Ingresar", color = colorScheme.onPrimary)
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        Text(
+                            text = "Regístrate",
+                            color = colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            modifier = Modifier.clickable {
+                                onRegisterClick()
+                            }
+                        )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "¿No tienes una cuenta? Regístrate aquí",
-                    color = colorScheme.primary,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .clickable { onRegisterClick() }
-                )
             }
+
+            Spacer(modifier = Modifier.height(22.dp))
+
+            Text(
+                text = "UAM · Parqueo seguro y ordenado",
+                fontSize = 12.sp,
+                color = colorScheme.onPrimary.copy(alpha = 0.78f),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
