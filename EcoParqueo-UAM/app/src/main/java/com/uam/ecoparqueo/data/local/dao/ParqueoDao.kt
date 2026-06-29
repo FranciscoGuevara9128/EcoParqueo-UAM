@@ -26,6 +26,10 @@ interface ParqueoDao {
     @Query("SELECT * FROM parqueos WHERE nombre = :nombre LIMIT 1")
     suspend fun getParqueoByNombre(nombre: String): ParqueoEntity?
 
+    @Query("SELECT * FROM parqueos WHERE id = :id LIMIT 1")
+    suspend fun getParqueoById(id: String): ParqueoEntity?
+
+
     @Query("UPDATE parqueos SET disponibles = disponibles - 1 WHERE id = :id AND disponibles > 0")
     suspend fun disminuirDisponibilidad(id: String)
 

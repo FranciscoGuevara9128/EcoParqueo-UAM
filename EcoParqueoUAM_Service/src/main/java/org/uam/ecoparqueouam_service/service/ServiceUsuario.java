@@ -45,6 +45,11 @@ public class ServiceUsuario {
      * se detecta por el prefijo "$2a$" y no se vuelve a hashear.
      */
     public Usuario save(Usuario usuario) {
+        // Si es una creación (id nulo), verificar que el nombre no esté duplicado
+        if (usuario.getId() == null && repo.findByNombre(usuario.getNombre()).isPresent()) {
+            throw new RuntimeException("El nombre de usuario '" + usuario.getNombre() + "' ya está registrado");
+        }
+        
         String raw = usuario.getContrasena();
         if (raw != null && !raw.startsWith("$2a$")) {
             usuario.setContrasena(encoder.encode(raw));

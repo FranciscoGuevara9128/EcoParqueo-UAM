@@ -10,4 +10,7 @@ interface UsuarioApiService {
 
     @POST("usuario/login")
     suspend fun login(@Body request: LoginRequest): Response<Usuario>
+
+    @POST("usuario/save")
+    suspend fun register(@Body usuario: Usuario): Response<Usuario>
 }

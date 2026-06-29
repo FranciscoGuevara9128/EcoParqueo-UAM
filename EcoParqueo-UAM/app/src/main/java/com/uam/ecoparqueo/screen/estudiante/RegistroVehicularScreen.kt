@@ -38,6 +38,7 @@ import com.uam.ecoparqueo.vmodel.RegistroVehicularViewModel
 
 @Composable
 fun RegistroVehicularScreen(
+    usuarioId: String,
     onRegistroExitoso: () -> Unit,
     viewModel: RegistroVehicularViewModel = viewModel()
 ) {
@@ -231,8 +232,27 @@ fun RegistroVehicularScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+                // Error de API
+                if (state.mensajeError.isNotBlank()) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorScheme.errorContainer
+                        )
+                    ) {
+                        Text(
+                            text = state.mensajeError,
+                            color = colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
             Button(
-                onClick = { viewModel.onEnviar() },
+                onClick = { viewModel.onEnviar(usuarioId) },
                 enabled = state.formularioValido,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorScheme.surface,

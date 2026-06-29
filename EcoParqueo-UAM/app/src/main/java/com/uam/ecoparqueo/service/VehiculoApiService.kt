@@ -17,6 +17,10 @@ interface VehiculoApiService {
     @GET("vehiculo/getId/{id}")
     suspend fun findById(@Path("id") id: String): Response<Vehiculo>
 
+    @GET("vehiculo/placa/{placa}")
+    suspend fun findByPlaca(@Path("placa") placa: String): Response<Vehiculo>
+
+
     @POST("vehiculo/save")
     suspend fun save(@Body vehiculo: Vehiculo): Response<Vehiculo>
 

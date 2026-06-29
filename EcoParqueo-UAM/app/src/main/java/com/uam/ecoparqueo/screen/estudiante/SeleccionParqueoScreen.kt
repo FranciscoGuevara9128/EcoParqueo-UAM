@@ -275,7 +275,6 @@ fun SeleccionParqueoScreen(
 
             Button(
                 onClick = {
-                    viewModel.decrementarDisponibilidad()
                     navegando = true
                     scope.launch {
                         delay(2000)

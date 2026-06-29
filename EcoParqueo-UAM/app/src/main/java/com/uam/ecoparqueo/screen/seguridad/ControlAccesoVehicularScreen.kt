@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -92,11 +93,11 @@ fun ControlAccesoVehicularScreen(
         )
 
         Button(
-            onClick = { viewModel.registrarPlaca() },
-            enabled = state.placaText.isNotBlank() && !state.placaError,
+            onClick = { viewModel.registrarPlaca(nombreParqueo) },
+            enabled = state.placaText.isNotBlank() && !state.placaError && !state.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
+                .padding(vertical = 4.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = colorScheme.surface,
@@ -105,7 +106,61 @@ fun ControlAccesoVehicularScreen(
                 disabledContentColor = colorScheme.onPrimary
             )
         ) {
-            Text("Registrar Vehículo")
+            if (state.isLoading) {
+                androidx.compose.material3.CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = colorScheme.primary,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text("Registrar Vehículo")
+            }
+        }
+
+        Button(
+            onClick = { viewModel.registrarSalidaRapida(nombreParqueo) },
+            enabled = !state.isLoading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colorScheme.secondaryContainer,
+                contentColor = colorScheme.onSecondaryContainer
+            )
+        ) {
+            Text("⚡ Registrar Salida Rápida")
+        }
+
+
+        // Mostrar mensajes de error de registro
+        if (state.errorMessage.isNotBlank()) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = colorScheme.errorContainer)
+            ) {
+                Text(
+                    text = state.errorMessage,
+                    color = colorScheme.onErrorContainer,
+                    modifier = Modifier.padding(12.dp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        // Mostrar mensajes de información o éxito
+        if (state.infoMessage.isNotBlank()) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = colorScheme.primaryContainer)
+            ) {
+                Text(
+                    text = state.infoMessage,
+                    color = colorScheme.onPrimaryContainer,
+                    modifier = Modifier.padding(12.dp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

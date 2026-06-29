@@ -2,9 +2,10 @@ package com.uam.ecoparqueo.vmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.uam.ecoparqueo.model.UsuarioRef
 import com.uam.ecoparqueo.model.Vehiculo
 import com.uam.ecoparqueo.repository.VehiculoRepository
-import kotlinx.coroutines.delay
+import com.uam.ecoparqueo.service.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +23,8 @@ data class RegistroVehicularState(
     val colorVehiculo: String = "",
     val indicadorCarga: Boolean = false,
     val registroExitoso: Boolean = false,
-    val mensajeSnackbar: String = ""
+    val mensajeSnackbar: String = "",
+    val mensajeError: String = ""
 ) {
     val tipoError: Boolean
         get() = tipoVehiculo.isBlank()
@@ -87,26 +89,43 @@ class RegistroVehicularViewModel : ViewModel() {
         _state.update { it.copy(colorVehiculo = color) }
     }
 
-    fun onEnviar() {
+    fun onEnviar(usuarioId: String) {
+        val current = _state.value
+        if (!current.formularioValido) return
+
         viewModelScope.launch {
-            _state.update { it.copy(indicadorCarga = true) }
-            try {
-                delay(800)
-                val current = _state.value
-                val vehiculo = Vehiculo(
-                    marca = current.marca.trim(),
-                    numeroPlaca = current.placaNormalized,
-                    modelo = current.modelo.trim(),
-                    anio = (current.anioNum ?: 0).toString(),
-                    colorVehiculo = current.colorVehiculo.trim(),
-                    tipoVehiculo = current.tipoVehiculo.trim()
-                )
-                _state.value = RegistroVehicularState(
-                    registroExitoso = true,
-                    mensajeSnackbar = "Vehículo registrado: ${vehiculo.numeroPlaca}"
-                )
-            } finally {
-                _state.update { it.copy(indicadorCarga = false) }
+            _state.update { it.copy(indicadorCarga = true, mensajeError = "") }
+            val vehiculo = Vehiculo(
+                marca          = current.marca.trim(),
+                numeroPlaca    = current.placaNormalized,
+                modelo         = current.modelo.trim(),
+                anio           = (current.anioNum ?: 0).toString(),
+                colorVehiculo  = current.colorVehiculo.trim(),
+                tipoVehiculo   = current.tipoVehiculo.trim(),
+                notasAdicionales = "",
+                // Referencia mínima al propietario: el backend resuelve la relación @ManyToOne
+                // por este UUID sin necesitar el objeto Usuario completo.
+                usuario        = UsuarioRef(id = usuarioId)
+            )
+
+            when (val result = repository.save(vehiculo)) {
+                is ApiResult.Success -> {
+                    _state.value = RegistroVehicularState(
+                        registroExitoso  = true,
+                        mensajeSnackbar  = "Vehículo ${result.data.numeroPlaca} registrado correctamente"
+                    )
+                }
+                is ApiResult.Error -> {
+                    _state.update {
+                        it.copy(
+                            indicadorCarga = false,
+                            mensajeError   = result.message
+                        )
+                    }
+                }
+                // Loading no es emitido por repository.save() (es suspend), pero
+                // se requiere para que el when sobre la sealed class sea exhaustivo.
+                is ApiResult.Loading -> Unit
             }
         }
     }

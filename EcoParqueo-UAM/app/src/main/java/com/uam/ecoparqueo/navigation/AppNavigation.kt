@@ -2,10 +2,13 @@ package com.uam.ecoparqueo.navigation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,18 +19,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import com.uam.ecoparqueo.Graph
 import com.uam.ecoparqueo.screen.estudiante.GestionVehiculosScreen
 import com.uam.ecoparqueo.screen.estudiante.MostrarParqueoScreen
 import com.uam.ecoparqueo.screen.estudiante.RegistroVehicularScreen
 import com.uam.ecoparqueo.screen.estudiante.SeleccionParqueoScreen
 import com.uam.ecoparqueo.screen.login.LoginScreen
+import com.uam.ecoparqueo.screen.login.RegistroUsuarioScreen
 import com.uam.ecoparqueo.screen.seguridad.ControlAccesoVehicularScreen
 import com.uam.ecoparqueo.screen.seguridad.EstadisticasScreen
 import com.uam.ecoparqueo.screen.seguridad.SeleccionSeguridadScreen
 import kotlinx.serialization.Serializable
 import com.uam.ecoparqueo.screen.admin.AdminParqueoScreen
+import kotlinx.coroutines.launch
 
 @Serializable object LoginRoute
+@Serializable object RegistroUsuarioRoute
 @Serializable object DashboardEstudianteRoute
 @Serializable object DashboardGuardaRoute
 @Serializable object RegistroVehicularRoute
@@ -41,29 +52,83 @@ import com.uam.ecoparqueo.screen.admin.AdminParqueoScreen
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
+    val userSession by Graph.sessionManager.userSession.collectAsState(initial = null)
+    val coroutineScope = rememberCoroutineScope()
+
+    // Manejo de auto-login al abrir la app o deslogueo reactivo
+    LaunchedEffect(userSession) {
+        val user = userSession
+        if (user != null) {
+            val destination = if (user.tipoUsuario == "Estudiante") DashboardEstudianteRoute else DashboardGuardaRoute
+            // Evitamos navegar si ya estamos en un destino secundario (ej: gestion de vehiculos, etc)
+            // Solo redireccionamos si el destino actual es el Login
+            val currentRoute = navController.currentBackStackEntry?.destination?.route
+            if (currentRoute == null || currentRoute == LoginRoute::class.qualifiedName) {
+                navController.navigate(destination) {
+                    popUpTo(LoginRoute) { inclusive = true }
+                }
+            }
+        } else {
+            // Si la sesión es null (logout) y no estamos en Login, forzamos regresar al Login
+            val currentRoute = navController.currentBackStackEntry?.destination?.route
+            if (currentRoute != null && currentRoute != LoginRoute::class.qualifiedName && currentRoute != RegistroUsuarioRoute::class.qualifiedName) {
+                navController.navigate(LoginRoute) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        }
+    }
 
     NavHost(navController = navController, startDestination = LoginRoute, modifier = modifier) {
 
         composable<LoginRoute> {
             LoginScreen(
                 onLoginSuccess = { tipo ->
-                    if (tipo == "Estudiante") {
-                        navController.navigate(DashboardEstudianteRoute) { popUpTo(LoginRoute) { inclusive = true } }
-                    } else {
-                        navController.navigate(DashboardGuardaRoute) { popUpTo(LoginRoute) { inclusive = true } }
-                    }
+                    // Al iniciar sesión de manera exitosa, el LoginViewModel ya guarda la sesión.
+                    // El LaunchedEffect de arriba reaccionará y hará la navegación.
+                },
+                onRegisterClick = {
+                    navController.navigate(RegistroUsuarioRoute)
+                }
+            )
+        }
+
+        composable<RegistroUsuarioRoute> {
+            RegistroUsuarioScreen(
+                onVolverAlLogin = {
+                    navController.popBackStack()
                 }
             )
         }
 
         composable<DashboardEstudianteRoute> {
             Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                val nombre = userSession?.nombre ?: "Estudiante"
+                Text("Bienvenido, $nombre", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(8.dp))
                 Text("Panel de Estudiante", style = MaterialTheme.typography.headlineMedium)
+                
                 Button(onClick = { navController.navigate(GestionVehiculosRoute) }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
                     Text("Mis Vehículos")
                 }
                 Button(onClick = { navController.navigate(SeleccionParqueoRoute) }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
                     Text("Buscar Parqueo")
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            Graph.sessionManager.clearSession()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text("Cerrar Sesión")
                 }
             }
         }
@@ -74,7 +139,11 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                val nombre = userSession?.nombre ?: "Guarda"
+                Text("Bienvenido, $nombre", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(8.dp))
                 Text("Panel de Guarda", style = MaterialTheme.typography.headlineMedium)
+                
                 Button(
                     onClick = { navController.navigate(SeleccionSeguridadRoute) },
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
@@ -94,6 +163,22 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 ) {
                     Text("Registrar Parqueo")
                 }
+
+                Spacer(modifier = Modifier.height(32.dp))
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            Graph.sessionManager.clearSession()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text("Cerrar Sesión")
+                }
             }
         }
 
@@ -102,7 +187,11 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         }
 
         composable<RegistroVehicularRoute> {
-            RegistroVehicularScreen(onRegistroExitoso = { navController.navigate(SeleccionParqueoRoute) })
+            val usuarioIdSesion = userSession?.id ?: "d35ac9db-2893-4605-8fd2-01afc4fd5dfb"
+            RegistroVehicularScreen(
+                usuarioId = usuarioIdSesion,
+                onRegistroExitoso = { navController.navigate(SeleccionParqueoRoute) }
+            )
         }
 
         composable<SeleccionParqueoRoute> {

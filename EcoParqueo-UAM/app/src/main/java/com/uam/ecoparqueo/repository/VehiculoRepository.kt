@@ -48,4 +48,32 @@ class VehiculoRepository {
             ApiResult.Error(e.message ?: "Error desconocido de conexión")
         }
     }
+
+    suspend fun findByPlaca(placa: String): ApiResult<Vehiculo> {
+        return try {
+            val response = apiService.findByPlaca(placa)
+            if (response.isSuccessful) {
+                response.body()?.let { ApiResult.Success(it) }
+                    ?: ApiResult.Error("Vehículo no encontrado")
+            } else {
+                ApiResult.Error("Vehículo no registrado en el sistema")
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de conexión con el servidor")
+        }
+    }
+
+    suspend fun update(vehiculo: Vehiculo): ApiResult<Vehiculo> {
+        return try {
+            val response = apiService.update(vehiculo)
+            if (response.isSuccessful) {
+                response.body()?.let { ApiResult.Success(it) }
+                    ?: ApiResult.Error("Error al actualizar el vehículo")
+            } else {
+                ApiResult.Error("Error ${response.code()}: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de conexión")
+        }
+    }
 }
