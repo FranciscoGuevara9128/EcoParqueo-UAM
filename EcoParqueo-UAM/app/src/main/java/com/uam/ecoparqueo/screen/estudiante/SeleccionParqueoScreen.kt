@@ -47,7 +47,7 @@ import com.uam.ecoparqueo.screen.estudiante.ParqueoMapView
 @Composable
 fun SeleccionParqueoScreen(
     tab: Int,
-    onIrAlParqueo: (String, String, Int) -> Unit,
+    onIrAlParqueo: (String, String, Int, Double, Double) -> Unit,
     viewModel: SeleccionParqueoViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -281,7 +281,13 @@ fun SeleccionParqueoScreen(
                         navegando = false
                         val updated = viewModel.state.value.parqueoSeleccionado
                         if (updated != null) {
-                            onIrAlParqueo(updated.nombre, updated.direccion, updated.disponibles)
+                            onIrAlParqueo(
+                                updated.nombre,
+                                updated.direccion,
+                                updated.disponibles,
+                                updated.latitud ?: 12.108503522103808,
+                                updated.longitud ?: -86.25693253419533
+                            )
                         }
                     }
                 },

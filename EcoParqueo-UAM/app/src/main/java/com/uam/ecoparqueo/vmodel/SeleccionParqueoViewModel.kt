@@ -59,12 +59,14 @@ class SeleccionParqueoViewModel : ViewModel() {
 
     // Al seleccionar un parqueo también actualizamos las coordenadas de zoom
     fun onParqueoSelected(name: String?) {
-        val parqueo = _internalState.value.parqueos.find { it.nombre == name }
+        // Buscar en el state combinado (que sí tiene los parqueos)
+        val parqueo = state.value.parqueos.find { it.nombre == name }
+        val isDeselecting = _internalState.value.selectedName == name
         _internalState.update {
             it.copy(
-                selectedName = if (it.selectedName == name) null else name,
-                zoomLatitud  = if (it.selectedName == name) null else parqueo?.latitud,
-                zoomLongitud = if (it.selectedName == name) null else parqueo?.longitud
+                selectedName = if (isDeselecting) null else name,
+                zoomLatitud  = if (isDeselecting) null else parqueo?.latitud,
+                zoomLongitud = if (isDeselecting) null else parqueo?.longitud
             )
         }
     }
