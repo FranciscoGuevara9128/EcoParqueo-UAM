@@ -3,8 +3,10 @@ package org.uam.ecoparqueouam_service.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.uam.ecoparqueouam_service.model.AuthResponse;
 import org.uam.ecoparqueouam_service.model.LoginRequest;
 import org.uam.ecoparqueouam_service.model.Usuario;
+import org.uam.ecoparqueouam_service.security.JwtTokenProvider;
 import org.uam.ecoparqueouam_service.service.ServiceUsuario;
 
 import java.util.List;
@@ -15,9 +17,11 @@ import java.util.UUID;
 public class ControllerUsuario {
 
     private final ServiceUsuario service;
+    private final JwtTokenProvider tokenProvider;
 
-    public ControllerUsuario(ServiceUsuario service) {
+    public ControllerUsuario(ServiceUsuario service, JwtTokenProvider tokenProvider) {
         this.service = service;
+        this.tokenProvider = tokenProvider;
     }
 
     @GetMapping("/all")
@@ -34,7 +38,9 @@ public class ControllerUsuario {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            return ResponseEntity.ok(service.login(request));
+            Usuario usuario = service.login(request);
+            String token = tokenProvider.generateToken(usuario.getNombre(), usuario.getTipoUsuario());
+            return ResponseEntity.ok(new AuthResponse(token, usuario));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }

@@ -57,8 +57,10 @@ class LoginViewModel : ViewModel() {
                     )
                 )
                 if (response.isSuccessful) {
-                    val usuario = response.body()
-                    if (usuario != null) {
+                    val authResponse = response.body()
+                    if (authResponse != null) {
+                        // Reconstruir el usuario con su respectivo token de sesión
+                        val usuario = authResponse.usuario.copy(token = authResponse.token)
                         // Guardar la sesión en DataStore
                         com.uam.ecoparqueo.Graph.sessionManager.saveSession(usuario)
                         _state.update {
