@@ -46,9 +46,14 @@ data class AdminParqueoState(
 class AdminParqueoViewModel : ViewModel() {
 
     private val apiService = RetrofitClient.parqueoApiService
+    private val parqueoDao = Graph.database.parqueoDao()
 
     private val _state = MutableStateFlow(AdminParqueoState())
     val state: StateFlow<AdminParqueoState> = _state.asStateFlow()
+
+    // Flow de parqueos locales para el mapa
+    val parqueos = parqueoDao.getAllParqueosFlow()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun onNombreChange(value: String)    = _state.update { it.copy(nombreInput    = value) }
     fun onDireccionChange(value: String) = _state.update { it.copy(direccionInput = value) }
@@ -74,9 +79,25 @@ class AdminParqueoViewModel : ViewModel() {
                 )
                 val response = apiService.save(nuevoParqueo)
                 if (response.isSuccessful) {
+                    val guardado = response.body()
+                    // Guardar también en Room para que aparezca en el mapa inmediatamente
+                    guardado?.let {
+                        parqueoDao.insert(
+                            ParqueoEntity(
+                                id             = it.id ?: java.util.UUID.randomUUID().toString(),
+                                nombre         = it.name,
+                                capacidadTotal = it.capacidadTotal,
+                                disponibles    = it.disponibles,
+                                direccion      = it.direccion,
+                                latitud        = it.latitud,
+                                longitud       = it.longitud
+                            )
+                        )
+                    }
                     _state.update {
                         AdminParqueoState(
-                            mensajeExito = "Parqueo \"${nuevoParqueo.name}\" guardado correctamente"
+                            mensajeExito         = "Parqueo \"${nuevoParqueo.name}\" guardado",
+                            ultimoParqueoGuardado = guardado
                         )
                     }
                 } else {
@@ -89,10 +110,7 @@ class AdminParqueoViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _state.update {
-                    it.copy(
-                        isLoading    = false,
-                        mensajeError = e.message ?: "Error de conexión"
-                    )
+                    it.copy(isLoading = false, mensajeError = e.message ?: "Error de conexión")
                 }
             }
         }

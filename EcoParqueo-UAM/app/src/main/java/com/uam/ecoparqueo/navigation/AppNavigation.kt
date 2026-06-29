@@ -43,12 +43,26 @@ import kotlinx.coroutines.launch
 @Serializable object DashboardGuardaRoute
 @Serializable object RegistroVehicularRoute
 @Serializable object SeleccionParqueoRoute
-@Serializable data class MostrarParqueoRoute(val nombreParqueo: String, val direccion: String, val disponibles: Int)
+@Serializable
+data class MostrarParqueoRoute(
+    val nombreParqueo: String,
+    val direccion: String,
+    val disponibles: Int,
+    val latitud: Double = 12.108503522103808,
+    val longitud: Double = -86.25693253419533
+)
 @Serializable object SeleccionSeguridadRoute
-@Serializable data class ControlAccesoVehicularRoute(val nombreParqueo: String)
+@Serializable
+data class ControlAccesoVehicularRoute(
+    val nombreParqueo: String,
+    val latitud: Double = 12.108503522103808,
+    val longitud: Double = -86.25693253419533
+)
 @Serializable object GestionVehiculosRoute
 @Serializable object EstadisticasRoute
 @Serializable object AdminParqueoRoute
+
+
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
@@ -197,24 +211,42 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         composable<SeleccionParqueoRoute> {
             SeleccionParqueoScreen(
                 tab = 2,
-                onIrAlParqueo = { nombre, direccion, disponibles ->
-                    navController.navigate(MostrarParqueoRoute(nombre, direccion, disponibles))
+                onIrAlParqueo = { nombre: String, direccion: String, disponibles: Int, latitud: Double, longitud: Double ->
+                    navController.navigate(
+                        MostrarParqueoRoute(nombre, direccion, disponibles, latitud, longitud)
+                    )
                 }
             )
         }
 
         composable<MostrarParqueoRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<MostrarParqueoRoute>()
-            MostrarParqueoScreen(args.nombreParqueo, args.direccion, args.disponibles, onVolver = { navController.popBackStack() })
+            MostrarParqueoScreen(
+                nombreParqueo = args.nombreParqueo,
+                direccion     = args.direccion,
+                disponibles   = args.disponibles,
+                latitud       = args.latitud,
+                longitud      = args.longitud,
+                onVolver      = { navController.popBackStack() }
+            )
         }
 
         composable<SeleccionSeguridadRoute> {
-            SeleccionSeguridadScreen(onParkingSelected = { nombre -> navController.navigate(ControlAccesoVehicularRoute(nombre)) })
+            SeleccionSeguridadScreen(
+                onParkingSelected = { nombre, lat, lng ->
+                    navController.navigate(ControlAccesoVehicularRoute(nombre, lat, lng))
+                }
+            )
         }
 
         composable<ControlAccesoVehicularRoute> { backStackEntry ->
             val args = backStackEntry.toRoute<ControlAccesoVehicularRoute>()
-            ControlAccesoVehicularScreen(args.nombreParqueo, onBack = { navController.popBackStack() })
+            ControlAccesoVehicularScreen(
+                nombreParqueo = args.nombreParqueo,
+                latitud       = args.latitud,
+                longitud      = args.longitud,
+                onBack        = { navController.popBackStack() }
+            )
         }
 
         composable<EstadisticasRoute> {
