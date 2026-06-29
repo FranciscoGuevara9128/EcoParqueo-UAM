@@ -21,10 +21,8 @@ class ParqueoRepository {
             val response = apiService.findAll()
             if (response.isSuccessful) {
                 val remoto = response.body() ?: emptyList()
-                // Solo sincroniza desde el servidor si este devuelve parqueos,
-                // si no, se mantienen los parqueos locales precargados
                 if (remoto.isNotEmpty()) {
-                    parqueoDao.deleteAll()
+                    // Merge: insertar/actualizar sin borrar los locales
                     val entidades = remoto.map { parqueo ->
                         ParqueoEntity(
                             id             = parqueo.id ?: java.util.UUID.randomUUID().toString(),
@@ -36,15 +34,15 @@ class ParqueoRepository {
                             longitud       = parqueo.longitud
                         )
                     }
+                    // insertAll usa REPLACE, actualiza existentes y agrega nuevos
+                    // SIN borrar los que solo existen localmente
                     parqueoDao.insertAll(entidades)
                 }
                 ApiResult.Success(Unit)
             } else {
-                // Error del servidor: no borramos los datos locales
                 ApiResult.Success(Unit)
             }
         } catch (e: Exception) {
-            // Sin conexión: los parqueos locales siguen disponibles
             ApiResult.Success(Unit)
         }
     }

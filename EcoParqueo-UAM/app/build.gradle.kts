@@ -80,6 +80,12 @@ dependencies {
     // Google Maps Compose
     implementation(libs.maps.compose)
 
+    //Servicio de localizacion Google Maps
+    implementation(libs.play.services.location)
+
     // DataStore Preferences (sesión de usuario)
     implementation(libs.datastore.preferences)
+
+    // Libreria de google para manejar permisos de localización
+    implementation(libs.accompanist.permissions)
 }

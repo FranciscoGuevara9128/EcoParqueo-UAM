@@ -36,6 +36,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.uam.ecoparqueo.vmodel.AdminParqueoViewModel
 
 @Composable
@@ -44,10 +53,16 @@ fun AdminParqueoScreen(
     viewModel: AdminParqueoViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val parqueos by viewModel.parqueos.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Mostrar mensajes de éxito o error como Snackbar
+    val UAM = remember { LatLng(12.108503522103808, -86.25693253419533) }
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(UAM, 16f)
+    }
+
+    // Mostrar snackbar de éxito o error
     LaunchedEffect(state.mensajeExito) {
         if (state.mensajeExito.isNotBlank()) {
             snackbarHostState.showSnackbar(state.mensajeExito)
@@ -58,6 +73,19 @@ fun AdminParqueoScreen(
         if (state.mensajeError.isNotBlank()) {
             snackbarHostState.showSnackbar(state.mensajeError)
             viewModel.onMensajeHandled()
+        }
+    }
+
+    // Cuando se guarda un parqueo nuevo hacer zoom a él en el mapa
+    LaunchedEffect(state.ultimoParqueoGuardado) {
+        val p = state.ultimoParqueoGuardado
+        if (p?.latitud != null && p.longitud != null) {
+            cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(p.latitud, p.longitud), 19f
+                ),
+                durationMs = 1000
+            )
         }
     }
 
@@ -89,17 +117,74 @@ fun AdminParqueoScreen(
                 color = colorScheme.onPrimary.copy(alpha = 0.85f)
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // ── Mapa UAM ──────────────────────────────────────────────
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape    = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
-                colors   = CardDefaults.cardColors(containerColor = colorScheme.surface),
+                modifier  = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp),
+                shape     = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                GoogleMap(
+                    modifier            = Modifier.fillMaxSize(),
+                    cameraPositionState = cameraPositionState,
+                    uiSettings          = MapUiSettings(
+                        zoomControlsEnabled = true,
+                        mapToolbarEnabled   = false
+                    )
+                ) {
+                    // Marcadores de parqueos existentes
+                    parqueos.forEach { parqueo ->
+                        if (parqueo.latitud != null && parqueo.longitud != null) {
+                            val esNuevo = parqueo.nombre == state.ultimoParqueoGuardado?.name
+                            val markerState = remember(parqueo.id) {
+                                MarkerState(LatLng(parqueo.latitud, parqueo.longitud))
+                            }
+                            Marker(
+                                state   = markerState,
+                                title   = parqueo.nombre,
+                                snippet = "${parqueo.disponibles}/${parqueo.capacidadTotal} espacios",
+                                icon    = BitmapDescriptorFactory.defaultMarker(
+                                    if (esNuevo) BitmapDescriptorFactory.HUE_GREEN
+                                    else BitmapDescriptorFactory.HUE_RED
+                                )
+                            )
+                        }
+                    }
+
+                    // Preview del parqueo que se está ingresando en el formulario
+                    val previewLat = state.latitudInput.toDoubleOrNull()
+                    val previewLng = state.longitudInput.toDoubleOrNull()
+                    if (previewLat != null && previewLng != null) {
+                        val previewState = remember(previewLat, previewLng) {
+                            MarkerState(LatLng(previewLat, previewLng))
+                        }
+                        Marker(
+                            state   = previewState,
+                            title   = state.nombreInput.ifBlank { "Nuevo parqueo" },
+                            snippet = "Vista previa",
+                            icon    = BitmapDescriptorFactory.defaultMarker(
+                                BitmapDescriptorFactory.HUE_AZURE
+                            )
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // ── Formulario ────────────────────────────────────────────
+            Card(
+                modifier  = Modifier.fillMaxWidth(),
+                shape     = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                colors    = CardDefaults.cardColors(containerColor = colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
 
-                    // ── Nombre ────────────────────────────────────────────
+                    // Nombre
                     OutlinedTextField(
                         value         = state.nombreInput,
                         onValueChange = { viewModel.onNombreChange(it) },
@@ -114,7 +199,7 @@ fun AdminParqueoScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // ── Dirección ─────────────────────────────────────────
+                    // Dirección
                     OutlinedTextField(
                         value         = state.direccionInput,
                         onValueChange = { viewModel.onDireccionChange(it) },
@@ -129,15 +214,15 @@ fun AdminParqueoScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // ── Capacidad ─────────────────────────────────────────
+                    // Capacidad
                     OutlinedTextField(
-                        value         = state.capacidadInput,
-                        onValueChange = { viewModel.onCapacidadChange(it) },
-                        label         = { Text("Capacidad total de espacios") },
-                        isError       = state.capacidadInput.isNotBlank() && state.capacidadError,
-                        modifier      = Modifier.fillMaxWidth(),
+                        value           = state.capacidadInput,
+                        onValueChange   = { viewModel.onCapacidadChange(it) },
+                        label           = { Text("Capacidad total de espacios") },
+                        isError         = state.capacidadInput.isNotBlank() && state.capacidadError,
+                        modifier        = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        supportingText = {
+                        supportingText  = {
                             if (state.capacidadInput.isNotBlank() && state.capacidadError)
                                 Text("Ingresa un número mayor a 0")
                         }
@@ -158,34 +243,34 @@ fun AdminParqueoScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // ── Latitud y Longitud en la misma fila ───────────────
+                    // Latitud y Longitud
                     Row(
-                        modifier            = Modifier.fillMaxWidth(),
+                        modifier              = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         OutlinedTextField(
-                            value         = state.latitudInput,
-                            onValueChange = { viewModel.onLatitudChange(it) },
-                            label         = { Text("Latitud") },
-                            placeholder   = { Text("12.1328") },
-                            isError       = state.latitudInput.isNotBlank() && state.latitudError,
-                            modifier      = Modifier.weight(1f),
+                            value           = state.latitudInput,
+                            onValueChange   = { viewModel.onLatitudChange(it) },
+                            label           = { Text("Latitud") },
+                            placeholder     = { Text("12.1328") },
+                            isError         = state.latitudInput.isNotBlank() && state.latitudError,
+                            modifier        = Modifier.weight(1f),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            supportingText = {
+                            supportingText  = {
                                 if (state.latitudInput.isNotBlank() && state.latitudError)
                                     Text("Valor inválido")
                             }
                         )
 
                         OutlinedTextField(
-                            value         = state.longitudInput,
-                            onValueChange = { viewModel.onLongitudChange(it) },
-                            label         = { Text("Longitud") },
-                            placeholder   = { Text("-86.2734") },
-                            isError       = state.longitudInput.isNotBlank() && state.longitudError,
-                            modifier      = Modifier.weight(1f),
+                            value           = state.longitudInput,
+                            onValueChange   = { viewModel.onLongitudChange(it) },
+                            label           = { Text("Longitud") },
+                            placeholder     = { Text("-86.2734") },
+                            isError         = state.longitudInput.isNotBlank() && state.longitudError,
+                            modifier        = Modifier.weight(1f),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            supportingText = {
+                            supportingText  = {
                                 if (state.longitudInput.isNotBlank() && state.longitudError)
                                     Text("Valor inválido")
                             }
@@ -196,7 +281,7 @@ fun AdminParqueoScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Botón guardar ─────────────────────────────────────────────
+            // Botón guardar
             Button(
                 onClick  = { viewModel.guardarParqueo() },
                 enabled  = state.formularioValido && !state.isLoading,
@@ -224,7 +309,7 @@ fun AdminParqueoScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ── Botón volver ──────────────────────────────────────────────
+            // Botón volver
             Button(
                 onClick  = onVolver,
                 modifier = Modifier.fillMaxWidth(),
