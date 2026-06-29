@@ -24,12 +24,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import com.uam.ecoparqueo.Graph
+import com.uam.ecoparqueo.screen.estudiante.DashboardEstudianteScreen
 import com.uam.ecoparqueo.screen.estudiante.GestionVehiculosScreen
 import com.uam.ecoparqueo.screen.estudiante.MostrarParqueoScreen
 import com.uam.ecoparqueo.screen.estudiante.RegistroVehicularScreen
 import com.uam.ecoparqueo.screen.estudiante.SeleccionParqueoScreen
 import com.uam.ecoparqueo.screen.login.LoginScreen
 import com.uam.ecoparqueo.screen.login.RegistroUsuarioScreen
+import com.uam.ecoparqueo.screen.seguridad.DashboardGuardaScreen
 import com.uam.ecoparqueo.screen.seguridad.ControlAccesoVehicularScreen
 import com.uam.ecoparqueo.screen.seguridad.EstadisticasScreen
 import com.uam.ecoparqueo.screen.seguridad.SeleccionSeguridadScreen
@@ -116,84 +118,30 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         }
 
         composable<DashboardEstudianteRoute> {
-            Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                val nombre = userSession?.nombre ?: "Estudiante"
-                Text("Bienvenido, $nombre", style = MaterialTheme.typography.titleLarge)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Panel de Estudiante", style = MaterialTheme.typography.headlineMedium)
-                
-                Button(onClick = { navController.navigate(GestionVehiculosRoute) }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-                    Text("Mis Vehículos")
+            DashboardEstudianteScreen(
+                nombreUsuario = userSession?.nombre ?: "Estudiante",
+                onNavigateToGestionVehiculos = { navController.navigate(GestionVehiculosRoute) },
+                onNavigateToSeleccionParqueo = { navController.navigate(SeleccionParqueoRoute) },
+                onCerrarSesion = {
+                    coroutineScope.launch {
+                        Graph.sessionManager.clearSession()
+                    }
                 }
-                Button(onClick = { navController.navigate(SeleccionParqueoRoute) }, modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-                    Text("Buscar Parqueo")
-                }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            Graph.sessionManager.clearSession()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    )
-                ) {
-                    Text("Cerrar Sesión")
-                }
-            }
+            )
         }
 
         composable<DashboardGuardaRoute> {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                val nombre = userSession?.nombre ?: "Guarda"
-                Text("Bienvenido, $nombre", style = MaterialTheme.typography.titleLarge)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Panel de Guarda", style = MaterialTheme.typography.headlineMedium)
-                
-                Button(
-                    onClick = { navController.navigate(SeleccionSeguridadRoute) },
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-                ) {
-                    Text("Control de Acceso")
+            DashboardGuardaScreen(
+                nombreUsuario = userSession?.nombre ?: "Guarda",
+                onNavigateToControlAcceso = { navController.navigate(SeleccionSeguridadRoute) },
+                onNavigateToEstadisticas = { navController.navigate(EstadisticasRoute) },
+                onNavigateToAdminParqueo = { navController.navigate(AdminParqueoRoute) },
+                onCerrarSesion = {
+                    coroutineScope.launch {
+                        Graph.sessionManager.clearSession()
+                    }
                 }
-                Button(
-                    onClick = { navController.navigate(EstadisticasRoute) },
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-                ) {
-                    Text("Estadísticas del Día")
-                }
-                // Nuevo botón para registrar parqueos
-                Button(
-                    onClick = { navController.navigate(AdminParqueoRoute) },
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
-                ) {
-                    Text("Registrar Parqueo")
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-                Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            Graph.sessionManager.clearSession()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    )
-                ) {
-                    Text("Cerrar Sesión")
-                }
-            }
+            )
         }
 
         composable<GestionVehiculosRoute> {
