@@ -79,4 +79,7 @@ dependencies {
 
     // Google Maps Compose
     implementation(libs.maps.compose)
+
+    // DataStore Preferences (sesión de usuario)
+    implementation(libs.datastore.preferences)
 }
