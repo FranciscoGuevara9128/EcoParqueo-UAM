@@ -2,26 +2,28 @@ package com.uam.ecoparqueo.vmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.uam.ecoparqueo.Graph
 import com.uam.ecoparqueo.model.Parqueo
-import com.uam.ecoparqueo.service.ApiResult
+import com.uam.ecoparqueo.model.entity.ParqueoEntity
 import com.uam.ecoparqueo.service.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class AdminParqueoState(
-    // Campos del formulario
-    val nombreInput: String      = "",
-    val direccionInput: String   = "",
-    val capacidadInput: String   = "",
-    val latitudInput: String     = "",
-    val longitudInput: String    = "",
-    // Control de UI
-    val isLoading: Boolean       = false,
-    val mensajeExito: String     = "",
-    val mensajeError: String     = ""
+    val nombreInput: String          = "",
+    val direccionInput: String       = "",
+    val capacidadInput: String       = "",
+    val latitudInput: String         = "",
+    val longitudInput: String        = "",
+    val isLoading: Boolean           = false,
+    val mensajeExito: String         = "",
+    val mensajeError: String         = "",
+    val ultimoParqueoGuardado: Parqueo? = null
 ) {
     val nombreError: Boolean
         get() = nombreInput.isBlank()
@@ -51,7 +53,7 @@ class AdminParqueoViewModel : ViewModel() {
     private val _state = MutableStateFlow(AdminParqueoState())
     val state: StateFlow<AdminParqueoState> = _state.asStateFlow()
 
-    // Flow de parqueos locales para el mapa
+    // Flow de parqueos locales para mostrar en el mapa
     val parqueos = parqueoDao.getAllParqueosFlow()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -77,26 +79,29 @@ class AdminParqueoViewModel : ViewModel() {
                     latitud        = current.latitudInput.toDouble(),
                     longitud       = current.longitudInput.toDouble()
                 )
+
                 val response = apiService.save(nuevoParqueo)
                 if (response.isSuccessful) {
                     val guardado = response.body()
+
                     // Guardar también en Room para que aparezca en el mapa inmediatamente
-                    guardado?.let {
+                    guardado?.let { p ->
                         parqueoDao.insert(
                             ParqueoEntity(
-                                id             = it.id ?: java.util.UUID.randomUUID().toString(),
-                                nombre         = it.name,
-                                capacidadTotal = it.capacidadTotal,
-                                disponibles    = it.disponibles,
-                                direccion      = it.direccion,
-                                latitud        = it.latitud,
-                                longitud       = it.longitud
+                                id             = p.id ?: java.util.UUID.randomUUID().toString(),
+                                nombre         = p.name,
+                                capacidadTotal = p.capacidadTotal,
+                                disponibles    = p.disponibles,
+                                direccion      = p.direccion,
+                                latitud        = p.latitud,
+                                longitud       = p.longitud
                             )
                         )
                     }
+
                     _state.update {
                         AdminParqueoState(
-                            mensajeExito         = "Parqueo \"${nuevoParqueo.name}\" guardado",
+                            mensajeExito          = "Parqueo \"${nuevoParqueo.name}\" guardado correctamente",
                             ultimoParqueoGuardado = guardado
                         )
                     }
@@ -110,7 +115,10 @@ class AdminParqueoViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _state.update {
-                    it.copy(isLoading = false, mensajeError = e.message ?: "Error de conexión")
+                    it.copy(
+                        isLoading    = false,
+                        mensajeError = e.message ?: "Error de conexión"
+                    )
                 }
             }
         }
