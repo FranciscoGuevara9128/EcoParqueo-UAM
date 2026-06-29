@@ -73,12 +73,6 @@ class SeleccionParqueoViewModel : ViewModel() {
         cargarParqueos()
     }
 
-    fun decrementarDisponibilidad() {
-        val selected = state.value.parqueoSeleccionado ?: return
-        viewModelScope.launch {
-            repository.disminuirDisponibilidad(selected.id)
-        }
-    }
 
     private fun cargarParqueos() {
         viewModelScope.launch {

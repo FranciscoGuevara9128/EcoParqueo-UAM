@@ -106,51 +106,114 @@ class GestionVehiculosViewModel : ViewModel() {
                 return@launch
             }
 
-            val vehiculoDto = Vehiculo(
-                marca = current.marcaInput.trim(),
-                numeroPlaca = current.placaInput.trim().uppercase(),
-                modelo = current.modeloInput.trim(),
-                anio = "2026",
-                colorVehiculo = current.colorInput.trim(),
-                tipoVehiculo = "CARRO",
-                notasAdicionales = "",
-                usuario = UsuarioRef(id = usuario.id ?: "")
-            )
+            val placaNormalizada = current.placaInput.trim().uppercase()
 
-            // 1. Guardar en PostgreSQL vía REST API
-            when (val result = repository.save(vehiculoDto)) {
+            // 1. Comprobar si el vehículo con esa placa ya está registrado en el servidor (PostgreSQL)
+            when (val checkResult = repository.findByPlaca(placaNormalizada)) {
                 is ApiResult.Success -> {
-                    val savedVehiculo = result.data
-                    
-                    // 2. Guardar en la base de datos local (Room) con el ID devuelto por el servidor
-                    val nuevoVehiculo = VehiculoEntity(
-                        id = savedVehiculo.id ?: java.util.UUID.randomUUID().toString(),
-                        usuarioId = usuario.id ?: "",
-                        numeroPlaca = savedVehiculo.numeroPlaca,
-                        marca = savedVehiculo.marca,
-                        modelo = savedVehiculo.modelo,
-                        anio = savedVehiculo.anio,
-                        colorVehiculo = savedVehiculo.colorVehiculo,
-                        tipoVehiculo = savedVehiculo.tipoVehiculo,
-                        notasAdicionales = savedVehiculo.notasAdicionales
-                    )
-                    
-                    vehiculoDao.insert(nuevoVehiculo)
-
-                    _state.update {
-                        it.copy(
-                            placaInput = "", marcaInput = "", modeloInput = "", colorInput = "",
-                            isLoading = false,
-                            isSuccess = true
+                    val existing = checkResult.data
+                    if (existing.usuario == null) {
+                        // El vehículo existe en el sistema (por ejemplo, fue ingresado por el guarda)
+                        // pero no tiene dueño asignado. ¡Lo asociamos al estudiante actual!
+                        val updatedVehiculo = existing.copy(
+                            marca = current.marcaInput.trim(),
+                            modelo = current.modeloInput.trim(),
+                            colorVehiculo = current.colorInput.trim(),
+                            usuario = UsuarioRef(id = usuario.id ?: "")
                         )
+
+                        // Ejecutamos la actualización (PUT) en lugar de creación (POST)
+                        when (val updateResult = repository.update(updatedVehiculo)) {
+                            is ApiResult.Success -> {
+                                val savedVehiculo = updateResult.data
+                                val nuevoVehiculo = VehiculoEntity(
+                                    id = savedVehiculo.id ?: java.util.UUID.randomUUID().toString(),
+                                    usuarioId = usuario.id ?: "",
+                                    numeroPlaca = savedVehiculo.numeroPlaca,
+                                    marca = savedVehiculo.marca,
+                                    modelo = savedVehiculo.modelo,
+                                    anio = savedVehiculo.anio,
+                                    colorVehiculo = savedVehiculo.colorVehiculo,
+                                    tipoVehiculo = savedVehiculo.tipoVehiculo,
+                                    notasAdicionales = savedVehiculo.notasAdicionales
+                                )
+                                vehiculoDao.insert(nuevoVehiculo)
+
+                                _state.update {
+                                    it.copy(
+                                        placaInput = "", marcaInput = "", modeloInput = "", colorInput = "",
+                                        isLoading = false,
+                                        isSuccess = true
+                                    )
+                                }
+                            }
+                            is ApiResult.Error -> {
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        errorMessage = "Error al asociar el vehículo a tu cuenta: ${updateResult.message}"
+                                    )
+                                }
+                            }
+                            is ApiResult.Loading -> Unit
+                        }
+                    } else {
+                        // El vehículo ya tiene un dueño asignado en el sistema
+                        _state.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "El vehículo con placa $placaNormalizada ya se encuentra registrado por otro usuario."
+                            )
+                        }
                     }
                 }
                 is ApiResult.Error -> {
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "Error al guardar en el servidor: ${result.message}"
-                        )
+                    // No existe en PostgreSQL. Lo guardamos como un vehículo nuevo desde cero (POST)
+                    val vehiculoDto = Vehiculo(
+                        marca = current.marcaInput.trim(),
+                        numeroPlaca = placaNormalizada,
+                        modelo = current.modeloInput.trim(),
+                        anio = "2026",
+                        colorVehiculo = current.colorInput.trim(),
+                        tipoVehiculo = "CARRO",
+                        notasAdicionales = "",
+                        usuario = UsuarioRef(id = usuario.id ?: "")
+                    )
+
+                    when (val result = repository.save(vehiculoDto)) {
+                        is ApiResult.Success -> {
+                            val savedVehiculo = result.data
+                            val nuevoVehiculo = VehiculoEntity(
+                                id = savedVehiculo.id ?: java.util.UUID.randomUUID().toString(),
+                                usuarioId = usuario.id ?: "",
+                                numeroPlaca = savedVehiculo.numeroPlaca,
+                                marca = savedVehiculo.marca,
+                                modelo = savedVehiculo.modelo,
+                                anio = savedVehiculo.anio,
+                                colorVehiculo = savedVehiculo.colorVehiculo,
+                                tipoVehiculo = savedVehiculo.tipoVehiculo,
+                                notasAdicionales = savedVehiculo.notasAdicionales
+                            )
+                            
+                            vehiculoDao.insert(nuevoVehiculo)
+
+                            _state.update {
+                                it.copy(
+                                    placaInput = "", marcaInput = "", modeloInput = "", colorInput = "",
+                                    isLoading = false,
+                                    isSuccess = true
+                                )
+                            }
+                        }
+                        is ApiResult.Error -> {
+                            _state.update {
+                                it.copy(
+                                    isLoading = false,
+                                    errorMessage = "Error al guardar en el servidor: ${result.message}"
+                                )
+                            }
+                        }
+                        is ApiResult.Loading -> Unit
                     }
                 }
                 is ApiResult.Loading -> Unit

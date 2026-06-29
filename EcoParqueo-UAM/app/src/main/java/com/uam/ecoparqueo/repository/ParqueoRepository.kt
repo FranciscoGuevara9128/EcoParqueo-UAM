@@ -51,9 +51,31 @@ class ParqueoRepository {
 
     suspend fun disminuirDisponibilidad(id: String) {
         parqueoDao.disminuirDisponibilidad(id)
+        syncParqueoToServer(id)
     }
 
     suspend fun aumentarDisponibilidad(id: String) {
         parqueoDao.aumentarDisponibilidad(id)
+        syncParqueoToServer(id)
+    }
+
+    private suspend fun syncParqueoToServer(id: String) {
+        try {
+            val local = parqueoDao.getParqueoById(id)
+            if (local != null) {
+                val dto = com.uam.ecoparqueo.model.Parqueo(
+                    id             = local.id,
+                    name           = local.nombre,
+                    capacidadTotal = local.capacidadTotal,
+                    disponibles    = local.disponibles,
+                    direccion      = local.direccion,
+                    latitud        = local.latitud,
+                    longitud       = local.longitud
+                )
+                apiService.update(dto)
+            }
+        } catch (e: Exception) {
+            // Ignoramos errores de red: Room sigue siendo fuente de verdad temporal
+        }
     }
 }

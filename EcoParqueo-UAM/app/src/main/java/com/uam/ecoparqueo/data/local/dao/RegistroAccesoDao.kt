@@ -16,4 +16,7 @@ interface RegistroAccesoDao {
 
     @Query("SELECT * FROM registros_acceso WHERE estado = 'DENTRO'")
     fun getVehiculosDentro(): Flow<List<RegistroAccesoEntity>>
+
+    @Query("SELECT * FROM registros_acceso WHERE vehiculoId = :vehiculoId AND estado = 'DENTRO' LIMIT 1")
+    suspend fun getRegistroActivoDeVehiculo(vehiculoId: String): RegistroAccesoEntity?
 }

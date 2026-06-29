@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
         ParqueoEntity::class,
         RegistroAccesoEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class EcoParqueoDatabase : RoomDatabase() {

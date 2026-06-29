@@ -19,7 +19,7 @@ import androidx.room.PrimaryKey
 )
 data class VehiculoEntity(
     @PrimaryKey val id: String,
-    val usuarioId: String,
+    val usuarioId: String?,
     val numeroPlaca: String,
     val marca: String,
     val modelo: String,
