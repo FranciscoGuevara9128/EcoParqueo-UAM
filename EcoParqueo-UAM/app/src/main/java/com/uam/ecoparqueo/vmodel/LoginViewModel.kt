@@ -2,8 +2,8 @@ package com.uam.ecoparqueo.vmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.uam.ecoparqueo.model.LoginRequest
-import com.uam.ecoparqueo.service.RetrofitClient
+import com.uam.ecoparqueo.Graph
+import com.uam.ecoparqueo.service.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +22,7 @@ data class LoginState(
 
 class LoginViewModel : ViewModel() {
 
-    private val apiService = RetrofitClient.usuarioApiService
+    private val authRepository = Graph.authRepository
 
     private val _state = MutableStateFlow(LoginState())
     val state: StateFlow<LoginState> = _state.asStateFlow()
@@ -50,29 +50,18 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(loading = true, mensajeError = "") }
             try {
-                val response = apiService.login(
-                    LoginRequest(
-                        nombre = current.nombre.trim(),
-                        contrasena = current.contrasena
-                    )
-                )
-                if (response.isSuccessful) {
-                    val authResponse = response.body()
-                    if (authResponse != null) {
-                        // Reconstruir el usuario con su respectivo token de sesión
-                        val usuario = authResponse.usuario.copy(token = authResponse.token)
-                        // Guardar la sesión en DataStore
-                        com.uam.ecoparqueo.Graph.sessionManager.saveSession(usuario)
+                when (val result = authRepository.login(current.nombre, current.contrasena)) {
+                    is ApiResult.Success -> {
                         _state.update {
                             it.copy(
                                 loginExitoso = true,
-                                tipoUsuario = usuario.tipoUsuario
+                                tipoUsuario = result.data.tipoUsuario
                             )
                         }
                     }
-                } else {
-                    // 401 Unauthorized → credenciales incorrectas
-                    _state.update { it.copy(mensajeError = "Nombre o contraseña incorrectos") }
+                    is ApiResult.Error -> {
+                        _state.update { it.copy(mensajeError = result.message) }
+                    }
                 }
             } catch (e: Exception) {
                 _state.update {

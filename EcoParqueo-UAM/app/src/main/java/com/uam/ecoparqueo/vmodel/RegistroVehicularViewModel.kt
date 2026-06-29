@@ -2,9 +2,9 @@ package com.uam.ecoparqueo.vmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.uam.ecoparqueo.Graph
 import com.uam.ecoparqueo.model.UsuarioRef
 import com.uam.ecoparqueo.model.Vehiculo
-import com.uam.ecoparqueo.repository.VehiculoRepository
 import com.uam.ecoparqueo.service.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,7 +59,7 @@ data class RegistroVehicularState(
 
 class RegistroVehicularViewModel : ViewModel() {
 
-    private val repository = VehiculoRepository()
+    private val repository = Graph.vehiculoRepository
     private val _state = MutableStateFlow(RegistroVehicularState())
     val state: StateFlow<RegistroVehicularState> = _state.asStateFlow()
 
@@ -123,9 +123,6 @@ class RegistroVehicularViewModel : ViewModel() {
                         )
                     }
                 }
-                // Loading no es emitido por repository.save() (es suspend), pero
-                // se requiere para que el when sobre la sealed class sea exhaustivo.
-                is ApiResult.Loading -> Unit
             }
         }
     }

@@ -18,14 +18,7 @@ fun EstadisticasScreen(
     onVolver: () -> Unit,
     viewModel: EstadisticasViewModel = viewModel()
 ) {
-    val parqueos by viewModel.parqueosStats.collectAsState()
-    val vehiculosDentro by viewModel.vehiculosDentro.collectAsState()
-
-    val totalCapacidad = parqueos.sumOf { it.capacidadTotal }
-    val totalDisponibles = parqueos.sumOf { it.disponibles }
-    val totalOcupados = totalCapacidad - totalDisponibles
-
-    val porcentajeOcupacion = if (totalCapacidad > 0) (totalOcupados.toFloat() / totalCapacidad * 100) else 0f
+    val state by viewModel.state.collectAsState()
 
     Scaffold(
         topBar = {
@@ -45,20 +38,20 @@ fun EstadisticasScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Resumen General", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("Capacidad Total: $totalCapacidad")
-                    Text("Espacios Libres: $totalDisponibles")
-                    Text("Espacios Ocupados: $totalOcupados")
+                    Text("Capacidad Total: ${state.totalCapacidad}")
+                    Text("Espacios Libres: ${state.totalDisponibles}")
+                    Text("Espacios Ocupados: ${state.totalOcupados}")
                     Spacer(modifier = Modifier.height(8.dp))
                     LinearProgressIndicator(
-                        progress = { porcentajeOcupacion / 100f },
+                        progress = { state.porcentajeOcupacion / 100f },
                         modifier = Modifier.fillMaxWidth().height(8.dp),
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Ocupación: ${String.format("%.1f", porcentajeOcupacion)}%", style = MaterialTheme.typography.bodySmall)
+                    Text("Ocupación: ${String.format("%.1f", state.porcentajeOcupacion)}%", style = MaterialTheme.typography.bodySmall)
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Vehículos Registrados (Dentro): $vehiculosDentro", fontWeight = FontWeight.Bold)
+                    Text("Vehículos Registrados (Dentro): ${state.vehiculosDentro}", fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -66,7 +59,7 @@ fun EstadisticasScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             LazyColumn(modifier = Modifier.weight(1f)) {
-                items(parqueos) { p ->
+                items(state.parqueos) { p ->
                     val ocupadosP = p.capacidadTotal - p.disponibles
                     val porcP = if (p.capacidadTotal > 0) (ocupadosP.toFloat() / p.capacidadTotal) else 0f
 
@@ -92,4 +85,3 @@ fun EstadisticasScreen(
         }
     }
 }
-

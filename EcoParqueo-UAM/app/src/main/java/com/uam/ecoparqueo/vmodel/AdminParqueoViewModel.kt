@@ -4,8 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uam.ecoparqueo.Graph
 import com.uam.ecoparqueo.model.Parqueo
-import com.uam.ecoparqueo.model.entity.ParqueoEntity
-import com.uam.ecoparqueo.service.RetrofitClient
+import com.uam.ecoparqueo.service.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -47,14 +46,13 @@ data class AdminParqueoState(
 
 class AdminParqueoViewModel : ViewModel() {
 
-    private val apiService = RetrofitClient.parqueoApiService
-    private val parqueoDao = Graph.database.parqueoDao()
+    private val repository = Graph.parqueoRepository
 
     private val _state = MutableStateFlow(AdminParqueoState())
     val state: StateFlow<AdminParqueoState> = _state.asStateFlow()
 
     // Flow de parqueos locales para mostrar en el mapa
-    val parqueos = parqueoDao.getAllParqueosFlow()
+    val parqueos = repository.getAllParqueosFlow()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun onNombreChange(value: String)    = _state.update { it.copy(nombreInput    = value) }
@@ -80,37 +78,22 @@ class AdminParqueoViewModel : ViewModel() {
                     longitud       = current.longitudInput.toDouble()
                 )
 
-                val response = apiService.save(nuevoParqueo)
-                if (response.isSuccessful) {
-                    val guardado = response.body()
-
-                    // Guardar también en Room para que aparezca en el mapa inmediatamente
-                    guardado?.let { p ->
-                        parqueoDao.insert(
-                            ParqueoEntity(
-                                id             = p.id ?: java.util.UUID.randomUUID().toString(),
-                                nombre         = p.name,
-                                capacidadTotal = p.capacidadTotal,
-                                disponibles    = p.disponibles,
-                                direccion      = p.direccion,
-                                latitud        = p.latitud,
-                                longitud       = p.longitud
+                when (val result = repository.save(nuevoParqueo)) {
+                    is ApiResult.Success -> {
+                        _state.update {
+                            AdminParqueoState(
+                                mensajeExito          = "Parqueo \"${nuevoParqueo.name}\" guardado correctamente",
+                                ultimoParqueoGuardado = result.data
                             )
-                        )
+                        }
                     }
-
-                    _state.update {
-                        AdminParqueoState(
-                            mensajeExito          = "Parqueo \"${nuevoParqueo.name}\" guardado correctamente",
-                            ultimoParqueoGuardado = guardado
-                        )
-                    }
-                } else {
-                    _state.update {
-                        it.copy(
-                            isLoading    = false,
-                            mensajeError = "Error ${response.code()}: ${response.message()}"
-                        )
+                    is ApiResult.Error -> {
+                        _state.update {
+                            it.copy(
+                                isLoading    = false,
+                                mensajeError = result.message
+                            )
+                        }
                     }
                 }
             } catch (e: Exception) {

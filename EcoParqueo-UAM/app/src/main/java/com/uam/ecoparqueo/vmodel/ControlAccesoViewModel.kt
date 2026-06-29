@@ -3,13 +3,10 @@ package com.uam.ecoparqueo.vmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uam.ecoparqueo.Graph
+import com.uam.ecoparqueo.FALLBACK_USER_ID
 import com.uam.ecoparqueo.model.Vehiculo
-import com.uam.ecoparqueo.model.UsuarioRef
-import com.uam.ecoparqueo.model.entity.RegistroAccesoEntity
 import com.uam.ecoparqueo.model.entity.UsuarioEntity
 import com.uam.ecoparqueo.model.entity.VehiculoEntity
-import com.uam.ecoparqueo.repository.ParqueoRepository
-import com.uam.ecoparqueo.repository.VehiculoRepository
 import com.uam.ecoparqueo.service.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,12 +30,10 @@ data class ControlAccesoState(
 
 class ControlAccesoViewModel : ViewModel() {
 
-    private val vehiculoDao = Graph.database.vehiculoDao()
-    private val parqueoDao = Graph.database.parqueoDao()
-    private val registroDao = Graph.database.registroAccesoDao()
-
-    private val vehiculoRepository = VehiculoRepository()
-    private val parqueoRepository = ParqueoRepository()
+    private val authRepository = Graph.authRepository
+    private val vehiculoRepository = Graph.vehiculoRepository
+    private val parqueoRepository = Graph.parqueoRepository
+    private val registroAccesoRepository = Graph.registroAccesoRepository
 
     private val _state = MutableStateFlow(ControlAccesoState())
     val state: StateFlow<ControlAccesoState> = _state.asStateFlow()
@@ -60,7 +55,7 @@ class ControlAccesoViewModel : ViewModel() {
 
             try {
                 // 1. Obtener el parqueo por su nombre
-                val parqueo = parqueoDao.getParqueoByNombre(nombreParqueo)
+                val parqueo = parqueoRepository.getLocalParqueoByNombre(nombreParqueo)
                 if (parqueo == null) {
                     _state.update {
                         it.copy(
@@ -72,18 +67,18 @@ class ControlAccesoViewModel : ViewModel() {
                 }
 
                 // 2. Buscar si el vehículo existe localmente o en el servidor
-                var vehiculo = vehiculoDao.getVehiculoByPlaca(placa)
+                var vehiculo = vehiculoRepository.getLocalVehiculoByPlaca(placa)
                 if (vehiculo == null) {
                     // Si no está en Room, lo buscamos en PostgreSQL vía API REST
                     when (val result = vehiculoRepository.findByPlaca(placa)) {
                         is ApiResult.Success -> {
                             val vDto = result.data
-                            val ownerId = vDto.usuario?.id ?: "d35ac9db-2893-4605-8fd2-01afc4fd5dfb"
+                            val ownerId = vDto.usuario?.id ?: FALLBACK_USER_ID
                             
                             // Asegurar la existencia del propietario en SQLite local para cumplir la FK
-                            val localOwner = Graph.database.usuarioDao().getUsuarioById(ownerId)
+                            val localOwner = authRepository.getUsuarioById(ownerId)
                             if (localOwner == null) {
-                                Graph.database.usuarioDao().insert(
+                                authRepository.insertUsuario(
                                     UsuarioEntity(
                                         id = ownerId,
                                         nombre = "Estudiante Externo",
@@ -104,7 +99,7 @@ class ControlAccesoViewModel : ViewModel() {
                                 tipoVehiculo = vDto.tipoVehiculo,
                                 notasAdicionales = vDto.notasAdicionales
                             )
-                            vehiculoDao.insert(entidad)
+                            vehiculoRepository.insertLocalVehiculo(entidad)
                             vehiculo = entidad
                         }
                         is ApiResult.Error -> {
@@ -140,18 +135,17 @@ class ControlAccesoViewModel : ViewModel() {
                                 tipoVehiculo = "CARRO",
                                 notasAdicionales = "Registrado por Guarda en control de acceso"
                             )
-                            vehiculoDao.insert(entidad)
+                            vehiculoRepository.insertLocalVehiculo(entidad)
                             vehiculo = entidad
                         }
-                        is ApiResult.Loading -> return@launch
                     }
                 }
 
                 // 3. Determinar si es un Ingreso o una Salida
-                val registroActivo = registroDao.getRegistroActivoDeVehiculo(vehiculo.id)
+                val registroActivo = registroAccesoRepository.getRegistroActivoDeVehiculo(vehiculo.id)
                 if (registroActivo != null) {
                     // ── SALIDA ───────────────────────────────────────────
-                    registroDao.marcarSalida(registroActivo.id, System.currentTimeMillis())
+                    registroAccesoRepository.registrarSalida(registroActivo.id)
                     parqueoRepository.aumentarDisponibilidad(parqueo.id)
 
                     _state.update {
@@ -174,13 +168,7 @@ class ControlAccesoViewModel : ViewModel() {
                         return@launch
                     }
 
-                    registroDao.insert(
-                        RegistroAccesoEntity(
-                            vehiculoId = vehiculo.id,
-                            parqueoId = parqueo.id,
-                            estado = "DENTRO"
-                        )
-                    )
+                    registroAccesoRepository.registrarEntrada(vehiculo.id, parqueo.id)
                     parqueoRepository.disminuirDisponibilidad(parqueo.id)
 
                     _state.update {
@@ -208,7 +196,7 @@ class ControlAccesoViewModel : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = "", infoMessage = "") }
             try {
-                val parqueo = parqueoDao.getParqueoByNombre(nombreParqueo)
+                val parqueo = parqueoRepository.getLocalParqueoByNombre(nombreParqueo)
                 if (parqueo == null) {
                     _state.update {
                         it.copy(
@@ -247,4 +235,4 @@ class ControlAccesoViewModel : ViewModel() {
             }
         }
     }
-}
+}

@@ -2,8 +2,8 @@ package com.uam.ecoparqueo.vmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.uam.ecoparqueo.model.Usuario
-import com.uam.ecoparqueo.service.RetrofitClient
+import com.uam.ecoparqueo.Graph
+import com.uam.ecoparqueo.service.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -21,7 +21,7 @@ data class RegistroUsuarioState(
 }
 
 class RegistroUsuarioViewModel : ViewModel() {
-    private val apiService = RetrofitClient.usuarioApiService
+    private val authRepository = Graph.authRepository
 
     private val _state = MutableStateFlow(RegistroUsuarioState())
     val state = _state.asStateFlow()
@@ -47,22 +47,13 @@ class RegistroUsuarioViewModel : ViewModel() {
 
         viewModelScope.launch {
             _state.update { it.copy(loading = true, mensajeError = "") }
-            try {
-                val response = apiService.register(
-                    Usuario(
-                        nombre = current.nombre.trim(),
-                        tipoUsuario = "Estudiante",
-                        contrasena = current.contrasena
-                    )
-                )
-                if (response.isSuccessful) {
+            when (val result = authRepository.register(current.nombre, current.contrasena)) {
+                is ApiResult.Success -> {
                     _state.update { it.copy(loading = false, registroExitoso = true) }
-                } else {
-                    val rawError = response.errorBody()?.string() ?: "Error de servidor al registrar"
-                    _state.update { it.copy(loading = false, mensajeError = rawError) }
                 }
-            } catch (e: Exception) {
-                _state.update { it.copy(loading = false, mensajeError = e.message ?: "Error de conexión") }
+                is ApiResult.Error -> {
+                    _state.update { it.copy(loading = false, mensajeError = result.message) }
+                }
             }
         }
     }

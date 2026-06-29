@@ -2,8 +2,8 @@ package com.uam.ecoparqueo.vmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.uam.ecoparqueo.Graph
 import com.uam.ecoparqueo.model.entity.ParqueoEntity
-import com.uam.ecoparqueo.repository.ParqueoRepository
 import com.uam.ecoparqueo.service.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,7 +39,7 @@ data class SeleccionParqueoState(
 
 class SeleccionParqueoViewModel : ViewModel() {
 
-    private val repository = ParqueoRepository()
+    private val repository = Graph.parqueoRepository
     private val _internalState = MutableStateFlow(SeleccionParqueoState())
 
     val state: StateFlow<SeleccionParqueoState> = combine(
@@ -74,7 +74,6 @@ class SeleccionParqueoViewModel : ViewModel() {
     fun actualizarDisponibilidad() {
         cargarParqueos()
     }
-
 
     private fun cargarParqueos() {
         viewModelScope.launch {

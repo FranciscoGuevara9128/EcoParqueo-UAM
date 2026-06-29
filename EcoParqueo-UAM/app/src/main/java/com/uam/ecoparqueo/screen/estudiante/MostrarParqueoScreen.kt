@@ -17,13 +17,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.*
-import com.uam.ecoparqueo.service.DirectionsService
 import com.uam.ecoparqueo.util.LocationHelper
+import com.uam.ecoparqueo.vmodel.MostrarParqueoViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -33,20 +34,17 @@ fun MostrarParqueoScreen(
     disponibles: Int,
     latitud: Double,
     longitud: Double,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    viewModel: MostrarParqueoViewModel = viewModel()
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     val parqueoLatLng = remember { LatLng(latitud, longitud) }
+    val state by viewModel.state.collectAsState()
 
-    var userLocation by remember { mutableStateOf<LatLng?>(null) }
-    var routePoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
-    var distanciaTexto by remember { mutableStateOf("Calculando...") }
-    var tiempoTexto by remember { mutableStateOf("Calculando...") }
     var permisoGranted by remember { mutableStateOf(false) }
-    var errorUbicacion by remember { mutableStateOf(false) }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(parqueoLatLng, 17f)
@@ -54,30 +52,16 @@ fun MostrarParqueoScreen(
 
     val parqueoMarkerState = remember { MarkerState(position = parqueoLatLng) }
 
-    // Función para calcular ruta una vez que se tiene la ubicación
-    fun calcularRuta(loc: LatLng) {
-        scope.launch {
-            userLocation = loc
-
-            val points = DirectionsService.getRoute(loc, parqueoLatLng)
-            routePoints = points
-
-            if (points.isNotEmpty()) {
-                val boundsBuilder = LatLngBounds.builder()
-                points.forEach { boundsBuilder.include(it) }
+    val onRouteCalculated: (List<LatLng>) -> Unit = { points ->
+        if (points.isNotEmpty()) {
+            val boundsBuilder = LatLngBounds.builder()
+            points.forEach { boundsBuilder.include(it) }
+            scope.launch {
                 cameraPositionState.animate(
                     CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 120),
                     durationMs = 1000
                 )
             }
-
-            val distMetros = calcularDistancia(loc, parqueoLatLng)
-            distanciaTexto = if (distMetros < 1000) {
-                "${distMetros.toInt()} m"
-            } else {
-                "${"%.1f".format(distMetros / 1000)} km"
-            }
-            tiempoTexto = "${(distMetros / 400).toInt() + 1} min en carro"
         }
     }
 
@@ -89,10 +73,14 @@ fun MostrarParqueoScreen(
         if (isGranted) {
             scope.launch {
                 val loc = LocationHelper.getCurrentLocation(context)
-                if (loc != null) calcularRuta(loc) else errorUbicacion = true
+                if (loc != null) {
+                    viewModel.calcularRutaYDistancia(loc, parqueoLatLng, onRouteCalculated)
+                } else {
+                    viewModel.onLocationError()
+                }
             }
         } else {
-            errorUbicacion = true
+            viewModel.onLocationError()
         }
     }
 
@@ -105,7 +93,11 @@ fun MostrarParqueoScreen(
         if (tienePermiso) {
             permisoGranted = true
             val loc = LocationHelper.getCurrentLocation(context)
-            if (loc != null) calcularRuta(loc) else errorUbicacion = true
+            if (loc != null) {
+                viewModel.calcularRutaYDistancia(loc, parqueoLatLng, onRouteCalculated)
+            } else {
+                viewModel.onLocationError()
+            }
         } else {
             permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
@@ -143,7 +135,7 @@ fun MostrarParqueoScreen(
                 )
 
                 // Marcador de ubicación del usuario
-                userLocation?.let { loc ->
+                state.userLocation?.let { loc ->
                     val userMarkerState = remember(loc) { MarkerState(position = loc) }
                     Marker(
                         state = userMarkerState,
@@ -152,9 +144,9 @@ fun MostrarParqueoScreen(
                 }
 
                 // Línea de la ruta
-                if (routePoints.isNotEmpty()) {
+                if (state.routePoints.isNotEmpty()) {
                     Polyline(
-                        points = routePoints,
+                        points = state.routePoints,
                         color = colorScheme.primary,
                         width = 14f
                     )
@@ -207,7 +199,7 @@ fun MostrarParqueoScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("📍", fontSize = 22.sp)
                         Text(
-                            distanciaTexto,
+                            state.distanciaTexto,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.primary,
                             style = MaterialTheme.typography.bodyMedium
@@ -223,7 +215,7 @@ fun MostrarParqueoScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("🕐", fontSize = 22.sp)
                         Text(
-                            tiempoTexto,
+                            state.tiempoTexto,
                             fontWeight = FontWeight.Bold,
                             color = colorScheme.primary,
                             style = MaterialTheme.typography.bodyMedium
@@ -258,7 +250,7 @@ fun MostrarParqueoScreen(
                     style = MaterialTheme.typography.bodySmall
                 )
 
-                if (errorUbicacion) {
+                if (state.errorUbicacion) {
                     Text(
                         "⚠ No se pudo obtener tu ubicación. Activa el GPS.",
                         color = colorScheme.error,
@@ -268,17 +260,4 @@ fun MostrarParqueoScreen(
             }
         }
     }
-}
-
-// Fórmula Haversine para calcular distancia en metros
-private fun calcularDistancia(from: LatLng, to: LatLng): Double {
-    val r = 6371000.0
-    val lat1 = Math.toRadians(from.latitude)
-    val lat2 = Math.toRadians(to.latitude)
-    val dLat = Math.toRadians(to.latitude - from.latitude)
-    val dLng = Math.toRadians(to.longitude - from.longitude)
-    val a = Math.sin(dLat / 2).let { it * it } +
-            Math.cos(lat1) * Math.cos(lat2) *
-            Math.sin(dLng / 2).let { it * it }
-    return r * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }

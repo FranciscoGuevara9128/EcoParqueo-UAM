@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.uam.ecoparqueo.FALLBACK_USER_ID
 import com.uam.ecoparqueo.data.local.dao.ParqueoDao
 import com.uam.ecoparqueo.data.local.dao.RegistroAccesoDao
 import com.uam.ecoparqueo.data.local.dao.UsuarioDao
@@ -54,14 +55,14 @@ abstract class EcoParqueoDatabase : RoomDatabase() {
 
                         // onOpen se ejecuta cada vez que abre la BD,
                         // usamos esto para insertar los parqueos si no existen
-                        // y para garantizar que el usuario de sesión de prueba siempre exista.
+                        // and para garantizar que el usuario de sesión de prueba siempre exista.
                         override fun onOpen(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                             super.onOpen(db)
                             // Usuario de prueba: INSERT OR IGNORE garantiza idempotencia.
                             // TODO: eliminar cuando se implemente autenticación con DataStore.
                             db.execSQL(
                                 "INSERT OR IGNORE INTO usuarios (id, nombre, tipoUsuario, fechaRegistro) " +
-                                        "VALUES ('d35ac9db-2893-4605-8fd2-01afc4fd5dfb', 'Estudiante de Prueba', 'Estudiante', ${System.currentTimeMillis()})"
+                                        "VALUES ('$FALLBACK_USER_ID', 'Estudiante de Prueba', 'Estudiante', ${System.currentTimeMillis()})"
                             )
                             INSTANCE?.let { database ->
                                 CoroutineScope(Dispatchers.IO).launch {
