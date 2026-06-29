@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface VehiculoDao {
-    @Insert
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE)
     suspend fun insert(vehiculo: VehiculoEntity): Long
 
     @Query("SELECT * FROM vehiculos WHERE usuarioId = :usuarioId")

@@ -77,7 +77,14 @@ fun GestionVehiculosScreen(
                         label = { Text("Color") },
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    if (state.errorMessage.isNotBlank()) {
+                        Text(
+                            text = state.errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
                     Button(
                         onClick = { viewModel.guardarVehiculo() },
                         enabled = state.isFormValid && !state.isLoading,
