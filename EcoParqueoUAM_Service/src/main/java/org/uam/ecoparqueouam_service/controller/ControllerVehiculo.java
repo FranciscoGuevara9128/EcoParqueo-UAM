@@ -50,6 +50,7 @@ public class ControllerVehiculo {
         v.setColorVehiculo(vehiculo.getColorVehiculo());
         v.setTipoVehiculo(vehiculo.getTipoVehiculo());
         v.setNotasAdicionales(vehiculo.getNotasAdicionales());
+        v.setUsuario(vehiculo.getUsuario());
         return ResponseEntity.ok(service.save(v));
     }
 
