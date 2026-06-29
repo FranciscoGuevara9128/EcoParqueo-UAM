@@ -1,16 +1,8 @@
 package com.uam.ecoparqueo.screen.login
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -18,16 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,22 +29,21 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.uam.ecoparqueo.vmodel.LoginViewModel
+import com.uam.ecoparqueo.vmodel.RegistroUsuarioViewModel
 
 @Composable
-fun LoginScreen(
-    onLoginSuccess: (String) -> Unit,
-    onRegisterClick: () -> Unit,
-    viewModel: LoginViewModel = viewModel()
+fun RegistroUsuarioScreen(
+    onVolverAlLogin: () -> Unit,
+    viewModel: RegistroUsuarioViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(state.loginExitoso) {
-        if (state.loginExitoso) {
-            onLoginSuccess(state.tipoUsuario)
-            viewModel.onLoginHandled()
+    LaunchedEffect(state.registroExitoso) {
+        if (state.registroExitoso) {
+            onVolverAlLogin()
+            viewModel.resetRegistro()
         }
     }
 
@@ -75,44 +57,44 @@ fun LoginScreen(
             ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(70.dp))
+        Spacer(modifier = Modifier.height(50.dp))
 
         // Logo
         Box(
             modifier = Modifier
-                .size(100.dp)
+                .size(90.dp)
                 .clip(CircleShape)
                 .background(colorScheme.surface),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "EP",
-                fontSize = 40.sp,
+                fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.primary
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "EcoParqueo UAM",
-            fontSize = 30.sp,
+            text = "Crear Cuenta",
+            fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = colorScheme.onPrimary
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Sistema de gestión de parqueo",
-            fontSize = 16.sp,
+            text = "Regístrate en EcoParqueo UAM",
+            fontSize = 15.sp,
             color = colorScheme.onPrimary
         )
 
-        Spacer(modifier = Modifier.height(35.dp))
+        Spacer(modifier = Modifier.height(25.dp))
 
-        // Tarjeta de formulario
+        // Formulario
         Card(
             shape = RoundedCornerShape(24.dp),
             modifier = Modifier
@@ -126,15 +108,15 @@ fun LoginScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Inicio de sesión",
-                    fontSize = 24.sp,
+                    text = "Registro de usuario",
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onSurface
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                // Campo nombre
+                // Campo Nombre
                 OutlinedTextField(
                     value = state.nombre,
                     onValueChange = { viewModel.onNombreChange(it) },
@@ -147,13 +129,13 @@ fun LoginScreen(
                     )
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // Campo contraseña con toggle de visibilidad
+                // Campo Contraseña
                 OutlinedTextField(
                     value = state.contrasena,
                     onValueChange = { viewModel.onContrasenaChange(it) },
-                    label = { Text("Contraseña") },
+                    label = { Text("Contraseña (mínimo 4 caracteres)") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     visualTransformation = if (state.contrasenaVisible)
@@ -167,7 +149,7 @@ fun LoginScreen(
                     keyboardActions = KeyboardActions(
                         onDone = {
                             focusManager.clearFocus()
-                            viewModel.onLogin()
+                            viewModel.onRegistrar()
                         }
                     ),
                     trailingIcon = {
@@ -177,10 +159,7 @@ fun LoginScreen(
                                     Icons.Filled.Visibility
                                 else
                                     Icons.Filled.VisibilityOff,
-                                contentDescription = if (state.contrasenaVisible)
-                                    "Ocultar contraseña"
-                                else
-                                    "Mostrar contraseña",
+                                contentDescription = "Mostrar/Ocultar contraseña",
                                 tint = colorScheme.onSurfaceVariant
                             )
                         }
@@ -189,25 +168,25 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Mensaje de error
+                // Mensaje de Error
                 if (state.mensajeError.isNotBlank()) {
                     Text(
                         text = state.mensajeError,
-                        color = colorScheme.error
+                        color = colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                 }
 
-                // Botón ingresar
+                // Botón registrar
                 Button(
-                    onClick = { viewModel.onLogin() },
+                    onClick = { viewModel.onRegistrar() },
+                    enabled = state.isFormValid && !state.loading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorScheme.primary
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary)
                 ) {
                     if (state.loading) {
                         CircularProgressIndicator(
@@ -215,20 +194,21 @@ fun LoginScreen(
                             modifier = Modifier.size(24.dp)
                         )
                     } else {
-                        Text("Ingresar", color = colorScheme.onPrimary)
+                        Text("Registrarse", color = colorScheme.onPrimary)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Enlace volver al login
                 Text(
-                    text = "¿No tienes una cuenta? Regístrate aquí",
+                    text = "¿Ya tienes cuenta? Inicia sesión aquí",
                     color = colorScheme.primary,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
-                        .clickable { onRegisterClick() }
+                        .clickable { onVolverAlLogin() }
                 )
             }
         }

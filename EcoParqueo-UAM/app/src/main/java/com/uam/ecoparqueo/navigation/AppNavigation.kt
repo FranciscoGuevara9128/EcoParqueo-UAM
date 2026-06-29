@@ -29,6 +29,7 @@ import com.uam.ecoparqueo.screen.estudiante.MostrarParqueoScreen
 import com.uam.ecoparqueo.screen.estudiante.RegistroVehicularScreen
 import com.uam.ecoparqueo.screen.estudiante.SeleccionParqueoScreen
 import com.uam.ecoparqueo.screen.login.LoginScreen
+import com.uam.ecoparqueo.screen.login.RegistroUsuarioScreen
 import com.uam.ecoparqueo.screen.seguridad.ControlAccesoVehicularScreen
 import com.uam.ecoparqueo.screen.seguridad.EstadisticasScreen
 import com.uam.ecoparqueo.screen.seguridad.SeleccionSeguridadScreen
@@ -37,6 +38,7 @@ import com.uam.ecoparqueo.screen.admin.AdminParqueoScreen
 import kotlinx.coroutines.launch
 
 @Serializable object LoginRoute
+@Serializable object RegistroUsuarioRoute
 @Serializable object DashboardEstudianteRoute
 @Serializable object DashboardGuardaRoute
 @Serializable object RegistroVehicularRoute
@@ -69,7 +71,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         } else {
             // Si la sesión es null (logout) y no estamos en Login, forzamos regresar al Login
             val currentRoute = navController.currentBackStackEntry?.destination?.route
-            if (currentRoute != null && currentRoute != LoginRoute::class.qualifiedName) {
+            if (currentRoute != null && currentRoute != LoginRoute::class.qualifiedName && currentRoute != RegistroUsuarioRoute::class.qualifiedName) {
                 navController.navigate(LoginRoute) {
                     popUpTo(0) { inclusive = true }
                 }
@@ -84,6 +86,17 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 onLoginSuccess = { tipo ->
                     // Al iniciar sesión de manera exitosa, el LoginViewModel ya guarda la sesión.
                     // El LaunchedEffect de arriba reaccionará y hará la navegación.
+                },
+                onRegisterClick = {
+                    navController.navigate(RegistroUsuarioRoute)
+                }
+            )
+        }
+
+        composable<RegistroUsuarioRoute> {
+            RegistroUsuarioScreen(
+                onVolverAlLogin = {
+                    navController.popBackStack()
                 }
             )
         }
