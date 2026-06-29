@@ -6,7 +6,6 @@ import com.uam.ecoparqueo.Graph
 import com.uam.ecoparqueo.model.Vehiculo
 import com.uam.ecoparqueo.model.UsuarioRef
 import com.uam.ecoparqueo.model.entity.VehiculoEntity
-import com.uam.ecoparqueo.repository.VehiculoRepository
 import com.uam.ecoparqueo.service.ApiResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,14 +31,13 @@ data class GestionVehiculosState(
 }
 
 class GestionVehiculosViewModel : ViewModel() {
-    private val vehiculoDao = Graph.database.vehiculoDao()
-    private val repository = VehiculoRepository()
+    private val repository = Graph.vehiculoRepository
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val misVehiculos = Graph.sessionManager.userSession
         .flatMapLatest { usuario ->
             if (usuario?.id != null) {
-                vehiculoDao.getVehiculosDeUsuario(usuario.id)
+                repository.getVehiculosDeUsuarioFlow(usuario.id)
             } else {
                 flowOf(emptyList())
             }
@@ -64,7 +62,7 @@ class GestionVehiculosViewModel : ViewModel() {
                     
                     // Convertir a entidades de Room e insertar
                     userVehicles.forEach { v ->
-                        vehiculoDao.insert(
+                        repository.insertLocalVehiculo(
                             VehiculoEntity(
                                 id = v.id ?: java.util.UUID.randomUUID().toString(),
                                 usuarioId = usuario.id ?: "",
@@ -83,7 +81,6 @@ class GestionVehiculosViewModel : ViewModel() {
                 is ApiResult.Error -> {
                     _state.update { it.copy(isLoading = false, errorMessage = "Error al sincronizar: ${result.message}") }
                 }
-                is ApiResult.Loading -> Unit
             }
         }
     }
@@ -137,7 +134,7 @@ class GestionVehiculosViewModel : ViewModel() {
                                     tipoVehiculo = savedVehiculo.tipoVehiculo,
                                     notasAdicionales = savedVehiculo.notasAdicionales
                                 )
-                                vehiculoDao.insert(nuevoVehiculo)
+                                repository.insertLocalVehiculo(nuevoVehiculo)
 
                                 _state.update {
                                     it.copy(
@@ -155,7 +152,6 @@ class GestionVehiculosViewModel : ViewModel() {
                                     )
                                 }
                             }
-                            is ApiResult.Loading -> Unit
                         }
                     } else {
                         // El vehículo ya tiene un dueño asignado en el sistema
@@ -195,7 +191,7 @@ class GestionVehiculosViewModel : ViewModel() {
                                 notasAdicionales = savedVehiculo.notasAdicionales
                             )
                             
-                            vehiculoDao.insert(nuevoVehiculo)
+                            repository.insertLocalVehiculo(nuevoVehiculo)
 
                             _state.update {
                                 it.copy(
@@ -213,10 +209,8 @@ class GestionVehiculosViewModel : ViewModel() {
                                 )
                             }
                         }
-                        is ApiResult.Loading -> Unit
                     }
                 }
-                is ApiResult.Loading -> Unit
             }
         }
     }

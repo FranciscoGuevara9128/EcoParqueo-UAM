@@ -1,6 +1,7 @@
 package com.uam.ecoparqueo.repository
 
 import com.uam.ecoparqueo.Graph
+import com.uam.ecoparqueo.model.Parqueo
 import com.uam.ecoparqueo.model.entity.ParqueoEntity
 import com.uam.ecoparqueo.service.ApiResult
 import com.uam.ecoparqueo.service.RetrofitClient
@@ -14,6 +15,9 @@ class ParqueoRepository {
     // La UI siempre observa Room (fuente de verdad local)
     fun getAllParqueosFlow(): Flow<List<ParqueoEntity>> =
         parqueoDao.getAllParqueosFlow()
+
+    suspend fun getLocalParqueoByNombre(nombre: String): ParqueoEntity? =
+        parqueoDao.getParqueoByNombre(nombre)
 
     // Sincroniza los parqueos desde la API hacia Room
     suspend fun refresh(): ApiResult<Unit> {
@@ -40,10 +44,40 @@ class ParqueoRepository {
                 }
                 ApiResult.Success(Unit)
             } else {
-                ApiResult.Success(Unit)
+                ApiResult.Error("Error al refrescar parqueos: ${response.code()} ${response.message()}")
             }
         } catch (e: Exception) {
-            ApiResult.Success(Unit)
+            ApiResult.Error(e.message ?: "Sin conexión con el servidor")
+        }
+    }
+
+    suspend fun save(nuevoParqueo: Parqueo): ApiResult<Parqueo> {
+        return try {
+            val response = apiService.save(nuevoParqueo)
+            if (response.isSuccessful) {
+                val guardado = response.body()
+                if (guardado != null) {
+                    // Guardar también en Room
+                    parqueoDao.insert(
+                        ParqueoEntity(
+                            id             = guardado.id ?: java.util.UUID.randomUUID().toString(),
+                            nombre         = guardado.name,
+                            capacidadTotal = guardado.capacidadTotal,
+                            disponibles    = guardado.disponibles,
+                            direccion      = guardado.direccion,
+                            latitud        = guardado.latitud,
+                            longitud       = guardado.longitud
+                        )
+                    )
+                    ApiResult.Success(guardado)
+                } else {
+                    ApiResult.Error("El servidor retornó una respuesta vacía")
+                }
+            } else {
+                ApiResult.Error("Error ${response.code()}: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Error de conexión")
         }
     }
 

@@ -1,12 +1,30 @@
 package com.uam.ecoparqueo.repository
 
+import com.uam.ecoparqueo.Graph
 import com.uam.ecoparqueo.model.Vehiculo
+import com.uam.ecoparqueo.model.entity.VehiculoEntity
 import com.uam.ecoparqueo.service.ApiResult
 import com.uam.ecoparqueo.service.RetrofitClient
+import kotlinx.coroutines.flow.Flow
 
 class VehiculoRepository {
 
     private val apiService = RetrofitClient.vehiculoApiService
+    private val vehiculoDao = Graph.database.vehiculoDao()
+
+    // --- Local DB (Room) Operations ---
+
+    fun getVehiculosDeUsuarioFlow(usuarioId: String): Flow<List<VehiculoEntity>> =
+        vehiculoDao.getVehiculosDeUsuario(usuarioId)
+
+    suspend fun getLocalVehiculoByPlaca(placa: String): VehiculoEntity? =
+        vehiculoDao.getVehiculoByPlaca(placa)
+
+    suspend fun insertLocalVehiculo(entidad: VehiculoEntity) {
+        vehiculoDao.insert(entidad)
+    }
+
+    // --- Remote API (Retrofit) Operations ---
 
     suspend fun findAll(): ApiResult<List<Vehiculo>> {
         return try {

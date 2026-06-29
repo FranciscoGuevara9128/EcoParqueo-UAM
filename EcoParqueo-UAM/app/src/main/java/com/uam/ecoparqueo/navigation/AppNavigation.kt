@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import com.uam.ecoparqueo.Graph
+import com.uam.ecoparqueo.FALLBACK_USER_ID
 import com.uam.ecoparqueo.screen.estudiante.DashboardEstudianteScreen
 import com.uam.ecoparqueo.screen.estudiante.GestionVehiculosScreen
 import com.uam.ecoparqueo.screen.estudiante.MostrarParqueoScreen
@@ -149,7 +150,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         }
 
         composable<RegistroVehicularRoute> {
-            val usuarioIdSesion = userSession?.id ?: "d35ac9db-2893-4605-8fd2-01afc4fd5dfb"
+            val usuarioIdSesion = userSession?.id ?: FALLBACK_USER_ID
             RegistroVehicularScreen(
                 usuarioId = usuarioIdSesion,
                 onRegistroExitoso = { navController.navigate(SeleccionParqueoRoute) }
