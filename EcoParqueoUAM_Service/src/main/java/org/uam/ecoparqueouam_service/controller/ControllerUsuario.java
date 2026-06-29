@@ -53,8 +53,12 @@ public class ControllerUsuario {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<Usuario> save(@RequestBody Usuario usuario) {
-        return ResponseEntity.ok(service.save(usuario));
+    public ResponseEntity<?> save(@RequestBody Usuario usuario) {
+        try {
+            return ResponseEntity.ok(service.save(usuario));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PutMapping("/update")
