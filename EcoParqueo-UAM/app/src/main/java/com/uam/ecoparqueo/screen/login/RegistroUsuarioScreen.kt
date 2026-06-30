@@ -48,11 +48,17 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uam.ecoparqueo.vmodel.RegistroUsuarioViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.uam.ecoparqueo.R
 
 @Composable
 fun RegistroUsuarioScreen(
@@ -75,10 +81,10 @@ fun RegistroUsuarioScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.verticalGradient(
+                brush = Brush.linearGradient(
                     colors = listOf(
                         colorScheme.primary,
-                        colorScheme.tertiary,
+                        colorScheme.secondary,
                         colorScheme.primaryContainer
                     )
                 )
@@ -111,37 +117,21 @@ fun RegistroUsuarioScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo
-            Box(
+            // Logo oficial EcoParqueo-UAM
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "Logo EcoParqueo UAM",
                 modifier = Modifier
-                    .size(96.dp)
-                    .clip(CircleShape)
-                    .background(colorScheme.surface.copy(alpha = 0.96f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "EP",
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Crear Cuenta",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorScheme.onPrimary,
-                textAlign = TextAlign.Center
+                    .height(120.dp)
+                    .fillMaxWidth(0.85f)
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Text(
                 text = "Regístrate en EcoParqueo UAM",
                 fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
                 color = colorScheme.onPrimary.copy(alpha = 0.90f),
                 textAlign = TextAlign.Center
             )
@@ -150,7 +140,7 @@ fun RegistroUsuarioScreen(
 
             // Tarjeta del formulario
             Card(
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(32.dp),
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 14.dp),
                 colors = CardDefaults.cardColors(
@@ -188,7 +178,7 @@ fun RegistroUsuarioScreen(
                         placeholder = { Text("Ejemplo: oscar") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(24.dp),
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Next
                         ),
@@ -209,7 +199,7 @@ fun RegistroUsuarioScreen(
                         placeholder = { Text("Mínimo 4 caracteres") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(24.dp),
                         visualTransformation = if (state.contrasenaVisible)
                             VisualTransformation.None
                         else
@@ -274,7 +264,7 @@ fun RegistroUsuarioScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp),
-                        shape = RoundedCornerShape(18.dp),
+                        shape = RoundedCornerShape(24.dp),
                         elevation = ButtonDefaults.buttonElevation(
                             defaultElevation = 6.dp,
                             pressedElevation = 2.dp,
@@ -304,32 +294,29 @@ fun RegistroUsuarioScreen(
 
                     Spacer(modifier = Modifier.height(18.dp))
 
-                    Row(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "¿Ya tienes cuenta?",
-                            color = colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp
-                        )
-
-                        Spacer(modifier = Modifier.width(4.dp))
-
-                        Text(
-                            text = "Inicia sesión",
-                            color = colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            modifier = Modifier.clickable {
-                                onVolverAlLogin()
+                    Text(
+                        text = buildAnnotatedString {
+                            append("¿Ya tienes cuenta? ")
+                            withStyle(
+                                style = SpanStyle(
+                                    color = colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append("Inicia sesión")
                             }
-                        )
-                    }
+                        },
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onVolverAlLogin() }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
             Text(
                 text = "UAM · Registro seguro de usuarios",
@@ -337,6 +324,8 @@ fun RegistroUsuarioScreen(
                 color = colorScheme.onPrimary.copy(alpha = 0.78f),
                 textAlign = TextAlign.Center
             )
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

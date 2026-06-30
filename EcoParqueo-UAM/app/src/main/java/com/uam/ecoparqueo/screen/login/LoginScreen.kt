@@ -48,11 +48,17 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uam.ecoparqueo.vmodel.LoginViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.uam.ecoparqueo.R
 
 @Composable
 fun LoginScreen(
@@ -76,10 +82,10 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.verticalGradient(
+                brush = Brush.linearGradient(
                     colors = listOf(
                         colorScheme.primary,
-                        colorScheme.tertiary,
+                        colorScheme.secondary,
                         colorScheme.primaryContainer
                     )
                 )
@@ -112,37 +118,21 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo
-            Box(
+            // Logo oficial EcoParqueo-UAM
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "Logo EcoParqueo UAM",
                 modifier = Modifier
-                    .size(104.dp)
-                    .clip(CircleShape)
-                    .background(colorScheme.surface.copy(alpha = 0.96f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "EP",
-                    fontSize = 38.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Text(
-                text = "EcoParqueo UAM",
-                fontSize = 31.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = colorScheme.onPrimary,
-                textAlign = TextAlign.Center
+                    .height(130.dp)
+                    .fillMaxWidth(0.85f)
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Text(
                 text = "Sistema inteligente de gestión de parqueo",
                 fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
                 color = colorScheme.onPrimary.copy(alpha = 0.90f),
                 textAlign = TextAlign.Center
             )
@@ -151,7 +141,7 @@ fun LoginScreen(
 
             // Tarjeta principal
             Card(
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(32.dp),
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 14.dp),
                 colors = CardDefaults.cardColors(
@@ -189,7 +179,7 @@ fun LoginScreen(
                         placeholder = { Text("Ejemplo: oscar") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(24.dp),
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Next
                         ),
@@ -210,7 +200,7 @@ fun LoginScreen(
                         placeholder = { Text("Ingresa tu contraseña") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(24.dp),
                         visualTransformation = if (state.contrasenaVisible)
                             VisualTransformation.None
                         else
@@ -275,7 +265,7 @@ fun LoginScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp),
-                        shape = RoundedCornerShape(18.dp),
+                        shape = RoundedCornerShape(24.dp),
                         elevation = ButtonDefaults.buttonElevation(
                             defaultElevation = 6.dp,
                             pressedElevation = 2.dp
@@ -302,32 +292,29 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(18.dp))
 
-                    Row(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "¿No tienes una cuenta?",
-                            color = colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp
-                        )
-
-                        Spacer(modifier = Modifier.width(4.dp))
-
-                        Text(
-                            text = "Regístrate",
-                            color = colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            modifier = Modifier.clickable {
-                                onRegisterClick()
+                    Text(
+                        text = buildAnnotatedString {
+                            append("¿No tienes una cuenta? ")
+                            withStyle(
+                                style = SpanStyle(
+                                    color = colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append("Regístrate")
                             }
-                        )
-                    }
+                        },
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onRegisterClick() }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
             Text(
                 text = "UAM · Parqueo seguro y ordenado",
@@ -335,6 +322,8 @@ fun LoginScreen(
                 color = colorScheme.onPrimary.copy(alpha = 0.78f),
                 textAlign = TextAlign.Center
             )
+            
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
