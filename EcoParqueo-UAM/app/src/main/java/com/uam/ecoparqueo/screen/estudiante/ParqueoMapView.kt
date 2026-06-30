@@ -26,6 +26,7 @@ fun ParqueoMapView(
     selectedName: String?,
     zoomLatitud: Double?,
     zoomLongitud: Double?,
+    onParqueoClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val cameraPositionState = rememberCameraPositionState {
@@ -95,6 +96,10 @@ fun ParqueoMapView(
                 state   = markerState,
                 title   = parqueo.nombre,
                 snippet = "Disponibles: ${parqueo.disponibles}/${parqueo.capacidadTotal}",
+                onClick = {
+                    onParqueoClick(parqueo.nombre)
+                    false
+                },
                 icon    = BitmapDescriptorFactory.defaultMarker(
                     if (esSeleccionado)
                         BitmapDescriptorFactory.HUE_AZURE
