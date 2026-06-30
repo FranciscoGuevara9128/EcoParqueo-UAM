@@ -1,49 +1,31 @@
 package com.uam.ecoparqueo.screen.estudiante
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uam.ecoparqueo.vmodel.SeleccionParqueoViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.uam.ecoparqueo.screen.estudiante.ParqueoMapView
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeleccionParqueoScreen(
     tab: Int,
@@ -59,11 +41,25 @@ fun SeleccionParqueoScreen(
         viewModel.onTabChange(tab)
     }
 
-    val checkboxColors = CheckboxDefaults.colors(
-        checkedColor = colorScheme.primary,
-        uncheckedColor = colorScheme.outline,
-        checkmarkColor = colorScheme.onPrimary
-    )
+    val parqueosList = state.parqueosFiltrados
+
+    // Auto-seleccionar el primero al cargar los parqueos
+    LaunchedEffect(parqueosList) {
+        if (parqueosList.isNotEmpty() && state.selectedName == null) {
+            viewModel.onParqueoSelected(parqueosList.first().nombre)
+        }
+    }
+
+    val selectedIndex = remember(state.selectedName, parqueosList) {
+        val idx = parqueosList.indexOfFirst { it.nombre == state.selectedName }
+        if (idx == -1) 0 else idx
+    }
+
+    val selectedParqueo = remember(selectedIndex, parqueosList) {
+        if (parqueosList.isNotEmpty() && selectedIndex in parqueosList.indices) {
+            parqueosList[selectedIndex]
+        } else null
+    }
 
     if (navegando) {
         Column(
@@ -71,7 +67,7 @@ fun SeleccionParqueoScreen(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(colorScheme.primary, colorScheme.tertiary)
+                        colors = listOf(colorScheme.primary, colorScheme.secondary)
                     )
                 )
                 .padding(16.dp),
@@ -81,227 +77,236 @@ fun SeleccionParqueoScreen(
             CircularProgressIndicator(color = colorScheme.onPrimary)
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Cargando dirección",
+                text = "Cargando indicaciones de navegación...",
                 color = colorScheme.onPrimary,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
             )
         }
     } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(colorScheme.primary, colorScheme.tertiary)
-                    )
-                )
-                .padding(16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Selecciona un parqueo",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = colorScheme.onPrimary
-            )
-            Text(
-                text = "Elige una opción disponible para continuar con la navegación.",
-                color = colorScheme.onPrimary.copy(alpha = 0.9f)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Card(
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
-            ) {
-                ParqueoMapView(
-                    parqueos     = state.parqueos,
-                    selectedName = state.selectedName,
-                    zoomLatitud  = state.zoomLatitud,
-                    zoomLongitud = state.zoomLongitud,
-                    modifier     = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = colorScheme.primaryContainer),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Parqueos disponibles: ${state.totalDisponibles}",
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.onPrimaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = when (state.tab) {
-                            0 -> "Mostrando parqueos con cupo"
-                            1 -> "Mostrando parqueos sin cupo"
-                            else -> "Mostrando todos los parqueos"
-                        },
-                        color = colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // Mensaje de error de red
-            if (state.errorMessage.isNotBlank()) {
-                Card(
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorScheme.errorContainer
-                    )
-                ) {
-                    Text(
-                        text = "⚠ Sin conexión: ${state.errorMessage}",
-                        color = colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = { viewModel.actualizarDisponibilidad() },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary)
-            ) {
-                if (state.loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = colorScheme.onPrimary
-                    )
-                } else {
-                    Text("Actualizar disponibilidad", color = colorScheme.onPrimary)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Lista de parqueos",
-                fontWeight = FontWeight.Bold,
-                color = colorScheme.onPrimary
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                items(state.parqueosFiltrados) { parqueo ->
-                    Card(
-                        shape = RoundedCornerShape(18.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                            .clickable(enabled = parqueo.disponibles > 0) {
-                                if (parqueo.disponibles > 0) {
-                                    viewModel.onParqueoSelected(parqueo.nombre)
-                                }
-                            },
-                        colors = CardDefaults.cardColors(
-                            containerColor = when {
-                                state.selectedName == parqueo.nombre -> colorScheme.primaryContainer
-                                parqueo.disponibles == 0 -> colorScheme.surfaceVariant
-                                else -> colorScheme.surface
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Buscar Parqueo", fontWeight = FontWeight.Bold) },
+                    actions = {
+                        IconButton(onClick = { viewModel.actualizarDisponibilidad() }) {
+                            if (state.loading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = colorScheme.onPrimary,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Refresh,
+                                    contentDescription = "Actualizar",
+                                    tint = colorScheme.onPrimary
+                                )
                             }
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = colorScheme.primary,
+                        titleContentColor = colorScheme.onPrimary
+                    )
+                )
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(colorScheme.background)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Mensaje de error de red
+                if (state.errorMessage.isNotBlank()) {
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colorScheme.errorContainer
+                        )
                     ) {
+                        Text(
+                            text = "⚠ Error de conexión: ${state.errorMessage}",
+                            color = colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(12.dp),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                // Mapa grande y expansivo
+                Card(
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f) // Esto hace que el mapa tome todo el espacio central
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    border = BorderStroke(1.dp, colorScheme.outline.copy(alpha = 0.15f))
+                ) {
+                    ParqueoMapView(
+                        parqueos     = state.parqueos,
+                        selectedName = state.selectedName,
+                        zoomLatitud  = selectedParqueo?.latitud,
+                        zoomLongitud = selectedParqueo?.longitud,
+                        onParqueoClick = { clickedName ->
+                            viewModel.onParqueoSelected(clickedName)
+                        },
+                        modifier     = Modifier.fillMaxSize()
+                    )
+                }
+
+                // Tarjeta de Control inferior (Detalles del parqueo seleccionado con flechas)
+                Card(
+                    shape = RoundedCornerShape(28.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
+                    border = BorderStroke(1.dp, colorScheme.outline.copy(alpha = 0.12f))
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    parqueo.nombre,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (parqueo.disponibles > 0) colorScheme.primary
-                                    else colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Dirección: ${parqueo.direccion}",
-                                    color = if (parqueo.disponibles > 0) colorScheme.onSurfaceVariant
-                                    else colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Disponibles: ${parqueo.disponibles}",
-                                    color = if (parqueo.disponibles > 0) colorScheme.secondary
-                                    else colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            // Flecha Izquierda
+                            IconButton(
+                                onClick = {
+                                    if (parqueosList.isNotEmpty()) {
+                                        val prevIndex = if (selectedIndex - 1 < 0) parqueosList.size - 1 else selectedIndex - 1
+                                        viewModel.onParqueoSelected(parqueosList[prevIndex].nombre)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                    contentDescription = "Anterior",
+                                    modifier = Modifier.size(32.dp),
+                                    tint = colorScheme.primary
                                 )
                             }
-                            Checkbox(
-                                checked = state.selectedName == parqueo.nombre,
-                                onCheckedChange = { checked ->
-                                    if (parqueo.disponibles > 0) {
-                                        viewModel.onParqueoSelected(
-                                            if (checked) parqueo.nombre else null
+
+                            // Información Central
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                selectedParqueo?.let { parqueo ->
+                                    Text(
+                                        text = parqueo.nombre,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        color = colorScheme.primary,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .clip(CircleShape)
+                                                .background(
+                                                    if (parqueo.disponibles > 0) colorScheme.secondary
+                                                    else colorScheme.error
+                                                )
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = if (parqueo.disponibles > 0)
+                                                "Disponibles: ${parqueo.disponibles} / ${parqueo.capacidadTotal} espacios"
+                                            else
+                                                "Lleno · Sin espacios",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = if (parqueo.disponibles > 0) colorScheme.onSurfaceVariant
+                                            else colorScheme.error
                                         )
                                     }
-                                },
-                                enabled = parqueo.disponibles > 0,
-                                colors = checkboxColors
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = parqueo.direccion,
+                                        fontSize = 11.sp,
+                                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 2
+                                    )
+                                } ?: Text(
+                                    "No hay parqueos que coincidan con la búsqueda",
+                                    fontSize = 13.sp,
+                                    color = colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+
+                            // Flecha Derecha
+                            IconButton(
+                                onClick = {
+                                    if (parqueosList.isNotEmpty()) {
+                                        val nextIndex = (selectedIndex + 1) % parqueosList.size
+                                        viewModel.onParqueoSelected(parqueosList[nextIndex].nombre)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = "Siguiente",
+                                    modifier = Modifier.size(32.dp),
+                                    tint = colorScheme.primary
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Botón de Confirmación / Viaje
+                        Button(
+                            onClick = {
+                                selectedParqueo?.let { parqueo ->
+                                    if (parqueo.disponibles > 0) {
+                                        navegando = true
+                                        scope.launch {
+                                            delay(1500)
+                                            navegando = false
+                                            onIrAlParqueo(
+                                                parqueo.nombre,
+                                                parqueo.direccion,
+                                                parqueo.disponibles,
+                                                parqueo.latitud ?: 12.108503522103808,
+                                                parqueo.longitud ?: -86.25693253419533
+                                            )
+                                        }
+                                    }
+                                }
+                            },
+                            enabled = selectedParqueo != null && selectedParqueo.disponibles > 0,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorScheme.primary,
+                                disabledContainerColor = colorScheme.outline.copy(alpha = 0.5f)
+                            )
+                        ) {
+                            Text(
+                                text = if (selectedParqueo != null && selectedParqueo.disponibles == 0) "Parqueo agotado"
+                                       else "Ir al parqueo seleccionado",
+                                color = colorScheme.onPrimary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
                             )
                         }
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = {
-                    navegando = true
-                    scope.launch {
-                        delay(2000)
-                        navegando = false
-                        val updated = viewModel.state.value.parqueoSeleccionado
-                        if (updated != null) {
-                            onIrAlParqueo(
-                                updated.nombre,
-                                updated.direccion,
-                                updated.disponibles,
-                                updated.latitud ?: 12.108503522103808,
-                                updated.longitud ?: -86.25693253419533
-                            )
-                        }
-                    }
-                },
-                enabled = state.selectedName != null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.primary,
-                    disabledContainerColor = colorScheme.outline
-                )
-            ) {
-                Text("Ir al parqueo", color = colorScheme.onPrimary)
             }
         }
     }
