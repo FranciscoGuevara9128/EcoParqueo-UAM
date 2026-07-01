@@ -15,8 +15,10 @@ import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uam.ecoparqueo.Graph
-import com.uam.ecoparqueo.ui.components.ParetoChartCard
+import com.uam.ecoparqueo.vmodel.DashboardEstudianteViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +34,8 @@ fun DashboardEstudianteScreen(
     nombreUsuario: String,
     onNavigateToGestionVehiculos: () -> Unit,
     onNavigateToSeleccionParqueo: () -> Unit,
-    onCerrarSesion: () -> Unit
+    onCerrarSesion: () -> Unit,
+    viewModel: DashboardEstudianteViewModel = viewModel()
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val listParqueosState = Graph.parqueoRepository.getAllParqueosFlow().collectAsState(initial = emptyList())
@@ -224,6 +227,103 @@ fun DashboardEstudianteScreen(
                                 fontSize = 13.sp,
                                 color = colorScheme.onSurfaceVariant
                             )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Sección de mi historial de accesos
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                Text(
+                    text = "Mi Historial de Accesos (Servidor)",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                val state by viewModel.state.collectAsState()
+
+                if (state.isLoading) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = colorScheme.primary)
+                    }
+                } else if (state.errorMessage.isNotEmpty()) {
+                    Text(
+                        text = state.errorMessage,
+                        color = colorScheme.error,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                } else if (state.misRegistros.isEmpty()) {
+                    Text(
+                        text = "Aún no tienes ingresos registrados.",
+                        color = colorScheme.onSurfaceVariant,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                } else {
+                    state.misRegistros.forEach { log ->
+                        val formatoHora = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault())
+                        val formatoFecha = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+                        val hora = formatoHora.format(java.util.Date(log.fechaHora))
+                        val fecha = formatoFecha.format(java.util.Date(log.fechaHora))
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Surface(
+                                        color = colorScheme.primaryContainer,
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text(
+                                            text = log.placa,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = colorScheme.primary,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = log.parqueoNombre,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = colorScheme.onSurface
+                                    )
+                                }
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        text = hora,
+                                        fontSize = 13.sp,
+                                        color = colorScheme.primary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = fecha,
+                                        fontSize = 11.sp,
+                                        color = colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
                         }
                     }
                 }

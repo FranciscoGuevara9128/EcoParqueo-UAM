@@ -56,4 +56,7 @@ object RetrofitClient {
 
     val usuarioApiService: UsuarioApiService =
         retrofit.create(UsuarioApiService::class.java)
+
+    val registroAccesoApiService: RegistroAccesoApiService =
+        retrofit.create(RegistroAccesoApiService::class.java)
 }
