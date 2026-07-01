@@ -18,8 +18,6 @@ import java.util.Locale
 
 data class EstadisticasState(
     val parqueos: List<ParqueoEntity> = emptyList(),
-    val registros: List<com.uam.ecoparqueo.model.entity.RegistroAccesoEntity> = emptyList(),
-    val horasPico: List<Pair<String, Int>> = emptyList(),
     val registros: List<RegistroAcceso> = emptyList(),
     val vehiculosDentro: Int = 0,
     val totalCapacidad: Int = 0,
@@ -38,31 +36,13 @@ class EstadisticasViewModel : ViewModel() {
     val state: StateFlow<EstadisticasState> = combine(
         repository.getAllParqueosFlow(),
         registroRepository.getVehiculosDentroFlow(),
-        registroRepository.getAllRegistrosFlow()
-    ) { parqueosList, registrosDentroList, registrosAllList ->
         _historial
-    ) { parqueosList, registrosList, historyList ->
+    ) { parqueosList, registrosDentroList, historyList ->
         val totalCapacidad = parqueosList.sumOf { it.capacidadTotal }
         val totalDisponibles = parqueosList.sumOf { it.disponibles }
         val totalOcupados = totalCapacidad - totalDisponibles
         val porcentajeOcupacion = if (totalCapacidad > 0) (totalOcupados.toFloat() / totalCapacidad * 100) else 0f
 
-        // Calcular horas pico: agrupar por hora de ingreso (HH:00) y tomar los más frecuentes
-        val horasMap = registrosAllList.groupingBy {
-            val cal = java.util.Calendar.getInstance().apply { timeInMillis = it.fechaHoraIngreso }
-            String.format(java.util.Locale.getDefault(), "%02d:00", cal.get(java.util.Calendar.HOUR_OF_DAY))
-        }.eachCount()
-
-        val horasPicoList = horasMap.entries
-            .sortedByDescending { it.value }
-            .map { it.key to it.value }
-            .take(5)
-
-        EstadisticasState(
-            parqueos = parqueosList,
-            registros = registrosAllList,
-            horasPico = horasPicoList,
-            vehiculosDentro = registrosDentroList.size,
         val formatoHoraSimple = SimpleDateFormat("hh a", Locale.getDefault())
 
         val horasPico = historyList
@@ -75,7 +55,7 @@ class EstadisticasViewModel : ViewModel() {
         EstadisticasState(
             parqueos = parqueosList,
             registros = historyList,
-            vehiculosDentro = registrosList.size,
+            vehiculosDentro = registrosDentroList.size,
             totalCapacidad = totalCapacidad,
             totalDisponibles = totalDisponibles,
             totalOcupados = totalOcupados,
@@ -99,7 +79,7 @@ class EstadisticasViewModel : ViewModel() {
                     _historial.value = result.data
                 }
                 is ApiResult.Error -> {
-                    // Ignorar o registrar log de error
+                    // Ignorar
                 }
             }
         }
