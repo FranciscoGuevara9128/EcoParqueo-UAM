@@ -145,7 +145,7 @@ class ControlAccesoViewModel : ViewModel() {
                 val registroActivo = registroAccesoRepository.getRegistroActivoDeVehiculo(vehiculo.id)
                 if (registroActivo != null) {
                     // ── SALIDA ───────────────────────────────────────────
-                    registroAccesoRepository.registrarSalida(registroActivo.id)
+                    registroAccesoRepository.registrarSalida(registroActivo.id, placa, parqueo.nombre)
                     parqueoRepository.aumentarDisponibilidad(parqueo.id)
 
                     _state.update {
@@ -168,7 +168,7 @@ class ControlAccesoViewModel : ViewModel() {
                         return@launch
                     }
 
-                    registroAccesoRepository.registrarEntrada(vehiculo.id, parqueo.id)
+                    registroAccesoRepository.registrarEntrada(vehiculo.id, parqueo.id, placa, parqueo.nombre)
                     parqueoRepository.disminuirDisponibilidad(parqueo.id)
 
                     _state.update {
