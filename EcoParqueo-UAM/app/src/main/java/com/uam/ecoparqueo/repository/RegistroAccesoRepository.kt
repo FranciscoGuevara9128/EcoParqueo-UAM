@@ -14,6 +14,9 @@ class RegistroAccesoRepository {
     fun getVehiculosDentroFlow(): Flow<List<RegistroAccesoEntity>> =
         registroDao.getVehiculosDentro()
 
+    fun getAllRegistrosFlow(): Flow<List<RegistroAccesoEntity>> =
+        registroDao.getAllRegistros()
+
     suspend fun getRegistroActivoDeVehiculo(vehiculoId: String): RegistroAccesoEntity? =
         registroDao.getRegistroActivoDeVehiculo(vehiculoId)
 

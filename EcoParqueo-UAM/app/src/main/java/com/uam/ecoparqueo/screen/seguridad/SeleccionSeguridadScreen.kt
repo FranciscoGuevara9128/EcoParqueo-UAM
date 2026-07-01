@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -25,11 +24,17 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import com.uam.ecoparqueo.ui.components.DrawerDestination
+import com.uam.ecoparqueo.ui.components.EcoParqueoDrawerScaffold
 import com.uam.ecoparqueo.vmodel.SeleccionParqueoViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SeleccionSeguridadScreen(
+    nombreUsuario: String,
+    tipoUsuario: String,
+    onDrawerNavigate: (DrawerDestination) -> Unit,
+    onIrAlPanel: () -> Unit,
+    onCerrarSesion: () -> Unit,
     onParkingSelected: (String, Double, Double) -> Unit,
     viewModel: SeleccionParqueoViewModel = viewModel()
 ) {
@@ -69,32 +74,30 @@ fun SeleccionSeguridadScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Punto de Control", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = { viewModel.actualizarDisponibilidad() }) {
-                        if (state.loading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Refresh,
-                                contentDescription = "Actualizar",
-                                tint = colorScheme.onPrimary
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorScheme.primary,
-                    titleContentColor = colorScheme.onPrimary
-                )
-            )
+    EcoParqueoDrawerScaffold(
+        nombreUsuario = nombreUsuario,
+        tipoUsuario = tipoUsuario,
+        pantallaActual = DrawerDestination.CONTROL_ACCESO,
+        title = "Punto de Control",
+        onNavigate = onDrawerNavigate,
+        onIrAlPanel = onIrAlPanel,
+        onCerrarSesion = onCerrarSesion,
+        topBarActions = {
+            IconButton(onClick = { viewModel.actualizarDisponibilidad() }) {
+                if (state.loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = colorScheme.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Actualizar",
+                        tint = colorScheme.onPrimary
+                    )
+                }
+            }
         }
     ) { paddingValues ->
         Column(
