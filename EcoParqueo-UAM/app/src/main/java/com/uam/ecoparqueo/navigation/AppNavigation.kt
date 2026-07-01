@@ -1,20 +1,7 @@
 package com.uam.ecoparqueo.navigation
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -36,8 +23,9 @@ import com.uam.ecoparqueo.screen.seguridad.DashboardGuardaScreen
 import com.uam.ecoparqueo.screen.seguridad.ControlAccesoVehicularScreen
 import com.uam.ecoparqueo.screen.seguridad.EstadisticasScreen
 import com.uam.ecoparqueo.screen.seguridad.SeleccionSeguridadScreen
-import kotlinx.serialization.Serializable
 import com.uam.ecoparqueo.screen.admin.AdminParqueoScreen
+import com.uam.ecoparqueo.ui.components.DrawerDestination
+import kotlinx.serialization.Serializable
 import kotlinx.coroutines.launch
 
 @Serializable object LoginRoute
@@ -96,6 +84,41 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         }
     }
 
+    // ── Navegación centralizada del menú hamburguesa ────────────────
+    // El estudiante solo puede saltar entre Buscar Parqueo <-> Mis Vehículos.
+    // El guarda puede saltar entre Control de Acceso, Estadísticas y Registrar Parqueo.
+    val onDrawerNavigate: (DrawerDestination) -> Unit = { destino ->
+        when (destino) {
+            DrawerDestination.BUSCAR_PARQUEO -> navController.navigate(SeleccionParqueoRoute) {
+                launchSingleTop = true
+            }
+            DrawerDestination.MIS_VEHICULOS -> navController.navigate(GestionVehiculosRoute) {
+                launchSingleTop = true
+            }
+            DrawerDestination.CONTROL_ACCESO -> navController.navigate(SeleccionSeguridadRoute) {
+                launchSingleTop = true
+            }
+            DrawerDestination.ESTADISTICAS -> navController.navigate(EstadisticasRoute) {
+                launchSingleTop = true
+            }
+            DrawerDestination.REGISTRAR_PARQUEO -> navController.navigate(AdminParqueoRoute) {
+                launchSingleTop = true
+            }
+        }
+    }
+
+    val onIrAlPanel: () -> Unit = {
+        val destino = if (userSession?.tipoUsuario == "Estudiante") DashboardEstudianteRoute else DashboardGuardaRoute
+        navController.navigate(destino) {
+            popUpTo(destino) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
+    val onCerrarSesionDrawer: () -> Unit = {
+        coroutineScope.launch { Graph.sessionManager.clearSession() }
+    }
+
     NavHost(navController = navController, startDestination = LoginRoute, modifier = modifier) {
 
         composable<LoginRoute> {
@@ -145,8 +168,16 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             )
         }
 
+        // ── A partir de aquí, las pantallas incluyen el menú hamburguesa ──
+
         composable<GestionVehiculosRoute> {
-            GestionVehiculosScreen(onVolver = { navController.popBackStack() })
+            GestionVehiculosScreen(
+                nombreUsuario = userSession?.nombre ?: "Estudiante",
+                tipoUsuario = userSession?.tipoUsuario ?: "Estudiante",
+                onDrawerNavigate = onDrawerNavigate,
+                onIrAlPanel = onIrAlPanel,
+                onCerrarSesion = onCerrarSesionDrawer
+            )
         }
 
         composable<RegistroVehicularRoute> {
@@ -160,6 +191,11 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         composable<SeleccionParqueoRoute> {
             SeleccionParqueoScreen(
                 tab = 2,
+                nombreUsuario = userSession?.nombre ?: "Estudiante",
+                tipoUsuario = userSession?.tipoUsuario ?: "Estudiante",
+                onDrawerNavigate = onDrawerNavigate,
+                onIrAlPanel = onIrAlPanel,
+                onCerrarSesion = onCerrarSesionDrawer,
                 onIrAlParqueo = { nombre: String, direccion: String, disponibles: Int, latitud: Double, longitud: Double ->
                     navController.navigate(
                         MostrarParqueoRoute(nombre, direccion, disponibles, latitud, longitud)
@@ -176,12 +212,21 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 disponibles   = args.disponibles,
                 latitud       = args.latitud,
                 longitud      = args.longitud,
-                onVolver      = { navController.popBackStack() }
+                nombreUsuario = userSession?.nombre ?: "Estudiante",
+                tipoUsuario   = userSession?.tipoUsuario ?: "Estudiante",
+                onDrawerNavigate = onDrawerNavigate,
+                onIrAlPanel   = onIrAlPanel,
+                onCerrarSesion = onCerrarSesionDrawer
             )
         }
 
         composable<SeleccionSeguridadRoute> {
             SeleccionSeguridadScreen(
+                nombreUsuario = userSession?.nombre ?: "Guarda",
+                tipoUsuario = userSession?.tipoUsuario ?: "Guarda",
+                onDrawerNavigate = onDrawerNavigate,
+                onIrAlPanel = onIrAlPanel,
+                onCerrarSesion = onCerrarSesionDrawer,
                 onParkingSelected = { nombre, lat, lng ->
                     navController.navigate(ControlAccesoVehicularRoute(nombre, lat, lng))
                 }
@@ -194,16 +239,32 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 nombreParqueo = args.nombreParqueo,
                 latitud       = args.latitud,
                 longitud      = args.longitud,
-                onBack        = { navController.popBackStack() }
+                nombreUsuario = userSession?.nombre ?: "Guarda",
+                tipoUsuario   = userSession?.tipoUsuario ?: "Guarda",
+                onDrawerNavigate = onDrawerNavigate,
+                onIrAlPanel   = onIrAlPanel,
+                onCerrarSesion = onCerrarSesionDrawer
             )
         }
 
         composable<EstadisticasRoute> {
-            EstadisticasScreen(onVolver = { navController.popBackStack() })
+            EstadisticasScreen(
+                nombreUsuario = userSession?.nombre ?: "Guarda",
+                tipoUsuario = userSession?.tipoUsuario ?: "Guarda",
+                onDrawerNavigate = onDrawerNavigate,
+                onIrAlPanel = onIrAlPanel,
+                onCerrarSesion = onCerrarSesionDrawer
+            )
         }
 
         composable<AdminParqueoRoute> {
-            AdminParqueoScreen(onVolver = { navController.popBackStack() })
+            AdminParqueoScreen(
+                nombreUsuario = userSession?.nombre ?: "Guarda",
+                tipoUsuario = userSession?.tipoUsuario ?: "Guarda",
+                onDrawerNavigate = onDrawerNavigate,
+                onIrAlPanel = onIrAlPanel,
+                onCerrarSesion = onCerrarSesionDrawer
+            )
         }
     }
 }

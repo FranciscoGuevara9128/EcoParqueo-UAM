@@ -23,6 +23,8 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.*
+import com.uam.ecoparqueo.ui.components.DrawerDestination
+import com.uam.ecoparqueo.ui.components.EcoParqueoDrawerScaffold
 import com.uam.ecoparqueo.util.LocationHelper
 import com.uam.ecoparqueo.vmodel.MostrarParqueoViewModel
 import kotlinx.coroutines.launch
@@ -34,7 +36,11 @@ fun MostrarParqueoScreen(
     disponibles: Int,
     latitud: Double,
     longitud: Double,
-    onVolver: () -> Unit,
+    nombreUsuario: String,
+    tipoUsuario: String,
+    onDrawerNavigate: (DrawerDestination) -> Unit,
+    onIrAlPanel: () -> Unit,
+    onCerrarSesion: () -> Unit,
     viewModel: MostrarParqueoViewModel = viewModel()
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -103,159 +109,156 @@ fun MostrarParqueoScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(colorScheme.primary, colorScheme.tertiary)
-                )
-            )
-    ) {
-        // Mapa — 70% de la pantalla
-        Box(modifier = Modifier.weight(0.7f)) {
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                properties = MapProperties(
-                    isMyLocationEnabled = permisoGranted
-                ),
-                uiSettings = MapUiSettings(
-                    zoomControlsEnabled = true,
-                    compassEnabled = true,
-                    mapToolbarEnabled = true,
-                    myLocationButtonEnabled = true
-                )
-            ) {
-                // Marcador del parqueo destino
-                Marker(
-                    state = parqueoMarkerState,
-                    title = nombreParqueo,
-                    snippet = "Disponibles: $disponibles"
-                )
-
-                // Marcador de ubicación del usuario
-                state.userLocation?.let { loc ->
-                    val userMarkerState = remember(loc) { MarkerState(position = loc) }
-                    Marker(
-                        state = userMarkerState,
-                        title = "Tu ubicación"
-                    )
-                }
-
-                // Línea de la ruta
-                if (state.routePoints.isNotEmpty()) {
-                    Polyline(
-                        points = state.routePoints,
-                        color = colorScheme.primary,
-                        width = 14f
-                    )
-                }
-            }
-
-            // Botón volver flotante sobre el mapa
-            Button(
-                onClick = onVolver,
-                modifier = Modifier
-                    .padding(12.dp)
-                    .align(Alignment.TopStart),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.surface
-                ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text("← Volver", color = colorScheme.primary, fontWeight = FontWeight.Bold)
-            }
-        }
-
-        // Info del parqueo — 30% restante
-        Card(
+    EcoParqueoDrawerScaffold(
+        nombreUsuario = nombreUsuario,
+        tipoUsuario = tipoUsuario,
+        pantallaActual = DrawerDestination.BUSCAR_PARQUEO,
+        title = nombreParqueo,
+        onNavigate = onDrawerNavigate,
+        onIrAlPanel = onIrAlPanel,
+        onCerrarSesion = onCerrarSesion
+    ) { padding ->
+        Column(
             modifier = Modifier
-                .weight(0.3f)
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
-            shape = RoundedCornerShape(20.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Text(
-                    nombreParqueo,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = colorScheme.primary,
-                    fontWeight = FontWeight.Bold
+                .fillMaxSize()
+                .padding(padding)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(colorScheme.primary, colorScheme.tertiary)
+                    )
                 )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // Mapa — 70% de la pantalla
+            Box(modifier = Modifier.weight(0.7f)) {
+                GoogleMap(
+                    modifier = Modifier.fillMaxSize(),
+                    cameraPositionState = cameraPositionState,
+                    properties = MapProperties(
+                        isMyLocationEnabled = permisoGranted
+                    ),
+                    uiSettings = MapUiSettings(
+                        zoomControlsEnabled = true,
+                        compassEnabled = true,
+                        mapToolbarEnabled = true,
+                        myLocationButtonEnabled = true
+                    )
                 ) {
-                    // Distancia
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("📍", fontSize = 22.sp)
-                        Text(
-                            state.distanciaTexto,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            "Distancia",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.onSurfaceVariant
+                    // Marcador del parqueo destino
+                    Marker(
+                        state = parqueoMarkerState,
+                        title = nombreParqueo,
+                        snippet = "Disponibles: $disponibles"
+                    )
+
+                    // Marcador de ubicación del usuario
+                    state.userLocation?.let { loc ->
+                        val userMarkerState = remember(loc) { MarkerState(position = loc) }
+                        Marker(
+                            state = userMarkerState,
+                            title = "Tu ubicación"
                         )
                     }
 
-                    // Tiempo estimado
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🕐", fontSize = 22.sp)
-                        Text(
-                            state.tiempoTexto,
-                            fontWeight = FontWeight.Bold,
+                    // Línea de la ruta
+                    if (state.routePoints.isNotEmpty()) {
+                        Polyline(
+                            points = state.routePoints,
                             color = colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            "Tiempo est.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Espacios disponibles
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🅿️", fontSize = 22.sp)
-                        Text(
-                            "$disponibles",
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.secondary,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            "Disponibles",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colorScheme.onSurfaceVariant
+                            width = 14f
                         )
                     }
                 }
+            }
 
-                Text(
-                    "📌 $direccion",
-                    color = colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                if (state.errorUbicacion) {
+            // Info del parqueo — 30% restante
+            Card(
+                modifier = Modifier
+                    .weight(0.3f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
+                shape = RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.SpaceEvenly
+                ) {
                     Text(
-                        "⚠ No se pudo obtener tu ubicación. Activa el GPS.",
-                        color = colorScheme.error,
+                        nombreParqueo,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        // Distancia
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("📍", fontSize = 22.sp)
+                            Text(
+                                state.distanciaTexto,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.primary,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                "Distancia",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        // Tiempo estimado
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("🕐", fontSize = 22.sp)
+                            Text(
+                                state.tiempoTexto,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.primary,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                "Tiempo est.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        // Espacios disponibles
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("🅿️", fontSize = 22.sp)
+                            Text(
+                                "$disponibles",
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.secondary,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                "Disponibles",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Text(
+                        "📌 $direccion",
+                        color = colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall
                     )
+
+                    if (state.errorUbicacion) {
+                        Text(
+                            "⚠ No se pudo obtener tu ubicación. Activa el GPS.",
+                            color = colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
         }

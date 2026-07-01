@@ -20,8 +20,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,11 +43,17 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.uam.ecoparqueo.ui.components.DrawerDestination
+import com.uam.ecoparqueo.ui.components.EcoParqueoDrawerScaffold
 import com.uam.ecoparqueo.vmodel.AdminParqueoViewModel
 
 @Composable
 fun AdminParqueoScreen(
-    onVolver: () -> Unit,
+    nombreUsuario: String,
+    tipoUsuario: String,
+    onDrawerNavigate: (DrawerDestination) -> Unit,
+    onIrAlPanel: () -> Unit,
+    onCerrarSesion: () -> Unit,
     viewModel: AdminParqueoViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -89,8 +93,15 @@ fun AdminParqueoScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+    EcoParqueoDrawerScaffold(
+        nombreUsuario = nombreUsuario,
+        tipoUsuario = tipoUsuario,
+        pantallaActual = DrawerDestination.REGISTRAR_PARQUEO,
+        title = "Registrar Parqueo",
+        onNavigate = onDrawerNavigate,
+        onIrAlPanel = onIrAlPanel,
+        onCerrarSesion = onCerrarSesion,
+        snackbarHostState = snackbarHostState
     ) { padding ->
         Column(
             modifier = Modifier
@@ -106,12 +117,6 @@ fun AdminParqueoScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text       = "Registrar Parqueo",
-                fontSize   = 26.sp,
-                fontWeight = FontWeight.Bold,
-                color      = colorScheme.onPrimary
-            )
             Text(
                 text  = "Ingresa los datos y coordenadas del área de parqueo",
                 color = colorScheme.onPrimary.copy(alpha = 0.85f)
@@ -305,21 +310,6 @@ fun AdminParqueoScreen(
                 } else {
                     Text("Guardar parqueo", fontWeight = FontWeight.Bold)
                 }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Botón volver
-            Button(
-                onClick  = onVolver,
-                modifier = Modifier.fillMaxWidth(),
-                shape    = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-                colors   = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.primary,
-                    contentColor   = colorScheme.onPrimary
-                )
-            ) {
-                Text("Volver")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

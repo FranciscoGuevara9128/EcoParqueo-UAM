@@ -21,6 +21,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.uam.ecoparqueo.ui.components.DrawerDestination
+import com.uam.ecoparqueo.ui.components.EcoParqueoDrawerScaffold
 import com.uam.ecoparqueo.vmodel.SeleccionParqueoViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -29,6 +31,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun SeleccionParqueoScreen(
     tab: Int,
+    nombreUsuario: String,
+    tipoUsuario: String,
+    onDrawerNavigate: (DrawerDestination) -> Unit,
+    onIrAlPanel: () -> Unit,
+    onCerrarSesion: () -> Unit,
     onIrAlParqueo: (String, String, Int, Double, Double) -> Unit,
     viewModel: SeleccionParqueoViewModel = viewModel()
 ) {
@@ -84,32 +91,30 @@ fun SeleccionParqueoScreen(
             )
         }
     } else {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Buscar Parqueo", fontWeight = FontWeight.Bold) },
-                    actions = {
-                        IconButton(onClick = { viewModel.actualizarDisponibilidad() }) {
-                            if (state.loading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    color = colorScheme.onPrimary,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.Refresh,
-                                    contentDescription = "Actualizar",
-                                    tint = colorScheme.onPrimary
-                                )
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = colorScheme.primary,
-                        titleContentColor = colorScheme.onPrimary
-                    )
-                )
+        EcoParqueoDrawerScaffold(
+            nombreUsuario = nombreUsuario,
+            tipoUsuario = tipoUsuario,
+            pantallaActual = DrawerDestination.BUSCAR_PARQUEO,
+            title = "Buscar Parqueo",
+            onNavigate = onDrawerNavigate,
+            onIrAlPanel = onIrAlPanel,
+            onCerrarSesion = onCerrarSesion,
+            topBarActions = {
+                IconButton(onClick = { viewModel.actualizarDisponibilidad() }) {
+                    if (state.loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Actualizar",
+                            tint = colorScheme.onPrimary
+                        )
+                    }
+                }
             }
         ) { paddingValues ->
             Column(
@@ -299,7 +304,7 @@ fun SeleccionParqueoScreen(
                         ) {
                             Text(
                                 text = if (selectedParqueo != null && selectedParqueo.disponibles == 0) "Parqueo agotado"
-                                       else "Ir al parqueo seleccionado",
+                                else "Ir al parqueo seleccionado",
                                 color = colorScheme.onPrimary,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp

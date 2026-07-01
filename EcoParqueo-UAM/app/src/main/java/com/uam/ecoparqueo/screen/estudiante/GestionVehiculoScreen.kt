@@ -12,11 +12,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.uam.ecoparqueo.ui.components.DrawerDestination
+import com.uam.ecoparqueo.ui.components.EcoParqueoDrawerScaffold
 import com.uam.ecoparqueo.vmodel.GestionVehiculosViewModel
 
 @Composable
 fun GestionVehiculosScreen(
-    onVolver: () -> Unit,
+    nombreUsuario: String,
+    tipoUsuario: String,
+    onDrawerNavigate: (DrawerDestination) -> Unit,
+    onIrAlPanel: () -> Unit,
+    onCerrarSesion: () -> Unit,
     viewModel: GestionVehiculosViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -30,18 +36,15 @@ fun GestionVehiculosScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            @OptIn(ExperimentalMaterial3Api::class)
-            TopAppBar(
-                title = { Text("Mis Vehículos") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        }
+    EcoParqueoDrawerScaffold(
+        nombreUsuario = nombreUsuario,
+        tipoUsuario = tipoUsuario,
+        pantallaActual = DrawerDestination.MIS_VEHICULOS,
+        title = "Mis Vehículos",
+        onNavigate = onDrawerNavigate,
+        onIrAlPanel = onIrAlPanel,
+        onCerrarSesion = onCerrarSesion,
+        snackbarHostState = snackbarHostState
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
 
@@ -112,12 +115,6 @@ fun GestionVehiculosScreen(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = onVolver, modifier = Modifier.fillMaxWidth()) {
-                Text("Volver al Menú Principal")
-            }
         }
     }
 }
-
