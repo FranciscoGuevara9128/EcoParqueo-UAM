@@ -18,6 +18,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import com.uam.ecoparqueo.ui.components.DrawerDestination
+import com.uam.ecoparqueo.ui.components.EcoParqueoDrawerScaffold
 import com.uam.ecoparqueo.vmodel.ControlAccesoViewModel
 
 @Composable
@@ -25,7 +27,11 @@ fun ControlAccesoVehicularScreen(
     nombreParqueo: String,
     latitud: Double,
     longitud: Double,
-    onBack: () -> Unit,
+    nombreUsuario: String,
+    tipoUsuario: String,
+    onDrawerNavigate: (DrawerDestination) -> Unit,
+    onIrAlPanel: () -> Unit,
+    onCerrarSesion: () -> Unit,
     viewModel: ControlAccesoViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -49,193 +55,173 @@ fun ControlAccesoVehicularScreen(
         unfocusedLabelColor       = colorScheme.onPrimary.copy(alpha = 0.8f)
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(colorScheme.primary, colorScheme.tertiary)
-                )
-            )
-    ) {
-        // Mapa — 40% superior
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .weight(0.4f)
-        ) {
-            GoogleMap(
-                modifier            = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                uiSettings          = MapUiSettings(
-                    zoomControlsEnabled = true,
-                    mapToolbarEnabled   = true,
-                    compassEnabled      = true
-                )
-            ) {
-                Marker(
-                    state   = markerState,
-                    title   = nombreParqueo,
-                    icon    = BitmapDescriptorFactory.defaultMarker(
-                        BitmapDescriptorFactory.HUE_GREEN
-                    )
-                )
-            }
-
-            // Nombre del parqueo flotante sobre el mapa
-            Card(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(12.dp),
-                shape  = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = colorScheme.surface.copy(alpha = 0.9f)
-                )
-            ) {
-                Text(
-                    text     = "📍 $nombreParqueo",
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    color    = colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
-                )
-            }
-        }
-
-        // Controles — 60% inferior
+    EcoParqueoDrawerScaffold(
+        nombreUsuario = nombreUsuario,
+        tipoUsuario = tipoUsuario,
+        pantallaActual = DrawerDestination.CONTROL_ACCESO,
+        title = "📍 $nombreParqueo",
+        onNavigate = onDrawerNavigate,
+        onIrAlPanel = onIrAlPanel,
+        onCerrarSesion = onCerrarSesion
+    ) { padding ->
         Column(
             modifier = Modifier
-                .weight(0.6f)
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxSize()
+                .padding(padding)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(colorScheme.primary, colorScheme.tertiary)
+                    )
+                )
         ) {
-            OutlinedTextField(
-                value         = state.placaText,
-                onValueChange = { viewModel.onPlacaTextChange(it) },
-                label         = { Text("Número de Placa", color = colorScheme.onPrimary) },
-                isError       = state.placaText.isNotBlank() && state.placaError,
-                modifier      = Modifier.fillMaxWidth(),
-                colors        = textFieldColors,
-                supportingText = {
-                    if (state.placaText.isNotBlank() && state.placaError) {
-                        Text(
-                            "Ingrese una placa válida (6-10 caracteres)",
-                            color = colorScheme.onPrimary
-                        )
-                    }
-                }
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Mapa — 40% superior
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.4f)
             ) {
-                Button(
-                    onClick  = { viewModel.registrarPlaca(nombreParqueo) },
-                    enabled  = state.placaText.isNotBlank() && !state.placaError && !state.isLoading,
-                    modifier = Modifier.weight(1f),
-                    shape    = RoundedCornerShape(16.dp),
-                    colors   = ButtonDefaults.buttonColors(
-                        containerColor         = colorScheme.surface,
-                        contentColor           = colorScheme.primary,
-                        disabledContainerColor = colorScheme.outline,
-                        disabledContentColor   = colorScheme.onPrimary
+                GoogleMap(
+                    modifier            = Modifier.fillMaxSize(),
+                    cameraPositionState = cameraPositionState,
+                    uiSettings          = MapUiSettings(
+                        zoomControlsEnabled = true,
+                        mapToolbarEnabled   = true,
+                        compassEnabled      = true
                     )
                 ) {
-                    if (state.isLoading) {
-                        CircularProgressIndicator(
-                            modifier    = Modifier.size(20.dp),
-                            color       = colorScheme.primary,
-                            strokeWidth = 2.dp
+                    Marker(
+                        state   = markerState,
+                        title   = nombreParqueo,
+                        icon    = BitmapDescriptorFactory.defaultMarker(
+                            BitmapDescriptorFactory.HUE_GREEN
                         )
-                    } else {
-                        Text("Registrar")
-                    }
-                }
-
-                Button(
-                    onClick  = { viewModel.registrarSalidaRapida(nombreParqueo) },
-                    enabled  = !state.isLoading,
-                    modifier = Modifier.weight(1f),
-                    shape    = RoundedCornerShape(16.dp),
-                    colors   = ButtonDefaults.buttonColors(
-                        containerColor = colorScheme.secondaryContainer,
-                        contentColor   = colorScheme.onSecondaryContainer
-                    )
-                ) {
-                    Text("⚡ Salida Rápida")
-                }
-            }
-
-            // Mensaje error
-            if (state.errorMessage.isNotBlank()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors   = CardDefaults.cardColors(
-                        containerColor = colorScheme.errorContainer
-                    )
-                ) {
-                    Text(
-                        text       = state.errorMessage,
-                        color      = colorScheme.onErrorContainer,
-                        modifier   = Modifier.padding(12.dp),
-                        fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            // Mensaje info
-            if (state.infoMessage.isNotBlank()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors   = CardDefaults.cardColors(
-                        containerColor = colorScheme.primaryContainer
-                    )
-                ) {
-                    Text(
-                        text       = state.infoMessage,
-                        color      = colorScheme.onPrimaryContainer,
-                        modifier   = Modifier.padding(12.dp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            // Lista de registros
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(state.placaList) { placa ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        colors   = CardDefaults.cardColors(
-                            containerColor = colorScheme.primaryContainer
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(modifier = Modifier.padding(16.dp)) {
-                            Text("🚗 ", color = colorScheme.onSurfaceVariant)
+            // Controles — 60% inferior
+            Column(
+                modifier = Modifier
+                    .weight(0.6f)
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                OutlinedTextField(
+                    value         = state.placaText,
+                    onValueChange = { viewModel.onPlacaTextChange(it) },
+                    label         = { Text("Número de Placa", color = colorScheme.onPrimary) },
+                    isError       = state.placaText.isNotBlank() && state.placaError,
+                    modifier      = Modifier.fillMaxWidth(),
+                    colors        = textFieldColors,
+                    supportingText = {
+                        if (state.placaText.isNotBlank() && state.placaError) {
                             Text(
-                                placa,
-                                fontWeight = FontWeight.Bold,
-                                color      = colorScheme.primary
+                                "Ingrese una placa válida (6-10 caracteres)",
+                                color = colorScheme.onPrimary
                             )
                         }
                     }
-                }
-            }
-
-            Button(
-                onClick  = onBack,
-                modifier = Modifier.fillMaxWidth(),
-                shape    = RoundedCornerShape(16.dp),
-                colors   = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.surface,
-                    contentColor   = colorScheme.primary
                 )
-            ) {
-                Text("Volver")
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick  = { viewModel.registrarPlaca(nombreParqueo) },
+                        enabled  = state.placaText.isNotBlank() && !state.placaError && !state.isLoading,
+                        modifier = Modifier.weight(1f),
+                        shape    = RoundedCornerShape(16.dp),
+                        colors   = ButtonDefaults.buttonColors(
+                            containerColor         = colorScheme.surface,
+                            contentColor           = colorScheme.primary,
+                            disabledContainerColor = colorScheme.outline,
+                            disabledContentColor   = colorScheme.onPrimary
+                        )
+                    ) {
+                        if (state.isLoading) {
+                            CircularProgressIndicator(
+                                modifier    = Modifier.size(20.dp),
+                                color       = colorScheme.primary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Registrar")
+                        }
+                    }
+
+                    Button(
+                        onClick  = { viewModel.registrarSalidaRapida(nombreParqueo) },
+                        enabled  = !state.isLoading,
+                        modifier = Modifier.weight(1f),
+                        shape    = RoundedCornerShape(16.dp),
+                        colors   = ButtonDefaults.buttonColors(
+                            containerColor = colorScheme.secondaryContainer,
+                            contentColor   = colorScheme.onSecondaryContainer
+                        )
+                    ) {
+                        Text("⚡ Salida Rápida")
+                    }
+                }
+
+                // Mensaje error
+                if (state.errorMessage.isNotBlank()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        colors   = CardDefaults.cardColors(
+                            containerColor = colorScheme.errorContainer
+                        )
+                    ) {
+                        Text(
+                            text       = state.errorMessage,
+                            color      = colorScheme.onErrorContainer,
+                            modifier   = Modifier.padding(12.dp),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                // Mensaje info
+                if (state.infoMessage.isNotBlank()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        colors   = CardDefaults.cardColors(
+                            containerColor = colorScheme.primaryContainer
+                        )
+                    ) {
+                        Text(
+                            text       = state.infoMessage,
+                            color      = colorScheme.onPrimaryContainer,
+                            modifier   = Modifier.padding(12.dp),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                // Lista de registros
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(state.placaList) { placa ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            colors   = CardDefaults.cardColors(
+                                containerColor = colorScheme.primaryContainer
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(modifier = Modifier.padding(16.dp)) {
+                                Text("🚗 ", color = colorScheme.onSurfaceVariant)
+                                Text(
+                                    placa,
+                                    fontWeight = FontWeight.Bold,
+                                    color      = colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
