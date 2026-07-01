@@ -144,27 +144,25 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         composable<DashboardEstudianteRoute> {
             DashboardEstudianteScreen(
                 nombreUsuario = userSession?.nombre ?: "Estudiante",
+                tipoUsuario = userSession?.tipoUsuario ?: "Estudiante",
+                onDrawerNavigate = onDrawerNavigate,
+                onIrAlPanel = onIrAlPanel,
+                onCerrarSesion = onCerrarSesionDrawer,
                 onNavigateToGestionVehiculos = { navController.navigate(GestionVehiculosRoute) },
-                onNavigateToSeleccionParqueo = { navController.navigate(SeleccionParqueoRoute) },
-                onCerrarSesion = {
-                    coroutineScope.launch {
-                        Graph.sessionManager.clearSession()
-                    }
-                }
+                onNavigateToSeleccionParqueo = { navController.navigate(SeleccionParqueoRoute) }
             )
         }
 
         composable<DashboardGuardaRoute> {
             DashboardGuardaScreen(
                 nombreUsuario = userSession?.nombre ?: "Guarda",
+                tipoUsuario = userSession?.tipoUsuario ?: "Guarda",
+                onDrawerNavigate = onDrawerNavigate,
+                onIrAlPanel = onIrAlPanel,
+                onCerrarSesion = onCerrarSesionDrawer,
                 onNavigateToControlAcceso = { navController.navigate(SeleccionSeguridadRoute) },
                 onNavigateToEstadisticas = { navController.navigate(EstadisticasRoute) },
-                onNavigateToAdminParqueo = { navController.navigate(AdminParqueoRoute) },
-                onCerrarSesion = {
-                    coroutineScope.launch {
-                        Graph.sessionManager.clearSession()
-                    }
-                }
+                onNavigateToAdminParqueo = { navController.navigate(AdminParqueoRoute) }
             )
         }
 
