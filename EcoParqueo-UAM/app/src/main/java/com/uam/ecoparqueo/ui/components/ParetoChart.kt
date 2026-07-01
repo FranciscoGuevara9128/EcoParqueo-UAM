@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.uam.ecoparqueo.model.entity.ParqueoEntity
+import com.uam.ecoparqueo.model.RegistroAcceso
 
 data class ParetoItem(
     val label: String,
@@ -33,16 +33,13 @@ data class ParetoItem(
 
 @Composable
 fun ParetoChartCard(
-    parqueos: List<ParqueoEntity>,
+    registros: List<RegistroAcceso>,
     modifier: Modifier = Modifier
 ) {
     val colorScheme = MaterialTheme.colorScheme
     
-    // Calcular datos reales u ocupar mock si no hay datos/ocupación
-    val totalRealOccupied = parqueos.sumOf { (it.capacidadTotal - it.disponibles).coerceAtLeast(0) }
-    
-    val chartItems = remember(parqueos, totalRealOccupied) {
-        if (parqueos.isEmpty() || totalRealOccupied == 0) {
+    val chartItems = remember(registros) {
+        if (registros.isEmpty()) {
             listOf(
                 ParetoItem("Recepción", 210),
                 ParetoItem("Plazoleta", 140),
@@ -51,23 +48,23 @@ fun ParetoChartCard(
                 ParetoItem("Edificio M", 15)
             )
         } else {
-            parqueos.map {
-                val occupied = (it.capacidadTotal - it.disponibles).coerceAtLeast(0)
-                val shortName = when {
-                    it.nombre.contains("Plazoleta", ignoreCase = true) -> "Plazoleta"
-                    it.nombre.contains("Recepción", ignoreCase = true) -> "Recepción"
-                    it.nombre.contains("edificio C", ignoreCase = true) -> "Edificio C"
-                    it.nombre.contains("Clinicas", ignoreCase = true) -> "Clínicas"
-                    it.nombre.contains("Observatorio", ignoreCase = true) -> "Observatorio"
-                    it.nombre.contains("Biblioteca", ignoreCase = true) -> "Biblioteca"
-                    it.nombre.contains("Edificio M", ignoreCase = true) -> "Edificio M"
-                    it.nombre.contains("FIA", ignoreCase = true) -> "FIA"
-                    else -> it.nombre.take(10)
+            registros.groupBy { it.parqueoNombre }
+                .map { (parqueo, list) ->
+                    val cleanName = when {
+                        parqueo.contains("Plazoleta", ignoreCase = true) -> "Plazoleta"
+                        parqueo.contains("Recepción", ignoreCase = true) -> "Recepción"
+                        parqueo.contains("edificio C", ignoreCase = true) -> "Edificio C"
+                        parqueo.contains("Clinicas", ignoreCase = true) -> "Clínicas"
+                        parqueo.contains("Observatorio", ignoreCase = true) -> "Observatorio"
+                        parqueo.contains("Biblioteca", ignoreCase = true) -> "Biblioteca"
+                        parqueo.contains("Edificio M", ignoreCase = true) -> "Edificio M"
+                        parqueo.contains("FIA", ignoreCase = true) -> "FIA"
+                        else -> if (parqueo.isBlank()) "Otro" else parqueo.take(10)
+                    }
+                    ParetoItem(cleanName, list.size)
                 }
-                ParetoItem(shortName, occupied)
-            }
-            .sortedByDescending { it.value }
-            .take(5)
+                .sortedByDescending { it.value }
+                .take(5)
         }
     }
 
