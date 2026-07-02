@@ -64,26 +64,15 @@ abstract class EcoParqueoDatabase : RoomDatabase() {
                                 "INSERT OR IGNORE INTO usuarios (id, nombre, tipoUsuario, fechaRegistro) " +
                                         "VALUES ('$FALLBACK_USER_ID', 'Estudiante de Prueba', 'Estudiante', ${System.currentTimeMillis()})"
                             )
-                            INSTANCE?.let { database ->
-                                CoroutineScope(Dispatchers.IO).launch {
-                                    insertarParqueosLocales(database.parqueoDao())
-                                }
-                            }
+                            // Ya no se inyectan parqueos locales aquí.
+                            // Se asume que el backend provee los datos reales,
+                            // o que el SQL de seed los insertará.
                         }
                     })
                     .build()
                 INSTANCE = instance
                 instance
             }
-        }
-
-        /**
-         * Inserta los parqueos definidos en ParqueosLocales solo si
-         * no existen ya en la base de datos, usando REPLACE para
-         * actualizar coordenadas si cambian en el código.
-         */
-        private suspend fun insertarParqueosLocales(parqueoDao: ParqueoDao) {
-            parqueoDao.insertAll(ParqueosLocales.lista)
         }
     }
 }
