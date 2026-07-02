@@ -51,6 +51,20 @@ fun EstadisticasScreen(
         onIrAlPanel = onIrAlPanel,
         onCerrarSesion = onCerrarSesion
     ) { paddingValues ->
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = colorScheme.primary,
+                    modifier = Modifier.size(48.dp),
+                    strokeWidth = 4.dp
+                )
+            }
+        } else {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -378,5 +392,6 @@ fun EstadisticasScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+        } // end else (not loading)
     }
 }

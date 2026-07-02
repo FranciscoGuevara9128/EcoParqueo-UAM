@@ -24,7 +24,8 @@ data class EstadisticasState(
     val totalDisponibles: Int = 0,
     val totalOcupados: Int = 0,
     val porcentajeOcupacion: Float = 0f,
-    val horasPico: List<Pair<String, Int>> = emptyList()
+    val horasPico: List<Pair<String, Int>> = emptyList(),
+    val isLoading: Boolean = false
 )
 
 class EstadisticasViewModel : ViewModel() {
@@ -32,12 +33,14 @@ class EstadisticasViewModel : ViewModel() {
     private val registroRepository = Graph.registroAccesoRepository
 
     private val _historial = MutableStateFlow<List<RegistroAcceso>>(emptyList())
+    private val _isLoading = MutableStateFlow(false)
 
     val state: StateFlow<EstadisticasState> = combine(
         repository.getAllParqueosFlow(),
         registroRepository.getVehiculosDentroFlow(),
-        _historial
-    ) { parqueosList, registrosDentroList, historyList ->
+        _historial,
+        _isLoading
+    ) { parqueosList, registrosDentroList, historyList, loading ->
         val totalCapacidad = parqueosList.sumOf { it.capacidadTotal }
         val totalDisponibles = parqueosList.sumOf { it.disponibles }
         val totalOcupados = totalCapacidad - totalDisponibles
@@ -60,12 +63,13 @@ class EstadisticasViewModel : ViewModel() {
             totalDisponibles = totalDisponibles,
             totalOcupados = totalOcupados,
             porcentajeOcupacion = porcentajeOcupacion,
-            horasPico = horasPico
+            horasPico = horasPico,
+            isLoading = loading
         )
     }.stateIn(
         viewModelScope,
         SharingStarted.Lazily,
-        EstadisticasState()
+        EstadisticasState(isLoading = true)
     )
 
     init {
@@ -74,14 +78,16 @@ class EstadisticasViewModel : ViewModel() {
 
     fun cargarHistorial() {
         viewModelScope.launch {
+            _isLoading.value = true
             when (val result = registroRepository.getTodosLosRegistros()) {
                 is ApiResult.Success -> {
                     _historial.value = result.data
                 }
                 is ApiResult.Error -> {
-                    // Ignorar
+                    // Ignorar error silenciosamente
                 }
             }
+            _isLoading.value = false
         }
     }
 }

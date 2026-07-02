@@ -82,13 +82,6 @@ fun SeleccionParqueoScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CircularProgressIndicator(color = colorScheme.onPrimary)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "Cargando indicaciones de navegación...",
-                color = colorScheme.onPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
         }
     } else {
         EcoParqueoDrawerScaffold(
