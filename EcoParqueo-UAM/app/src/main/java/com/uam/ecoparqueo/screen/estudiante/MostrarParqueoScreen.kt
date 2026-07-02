@@ -200,12 +200,20 @@ fun MostrarParqueoScreen(
                         // Distancia
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("📍", fontSize = 22.sp)
-                            Text(
-                                state.distanciaTexto,
-                                fontWeight = FontWeight.Bold,
-                                color = colorScheme.primary,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            if (state.isRouteLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = colorScheme.primary
+                                )
+                            } else {
+                                Text(
+                                    state.distanciaTexto,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorScheme.primary,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                             Text(
                                 "Distancia",
                                 style = MaterialTheme.typography.bodySmall,
@@ -216,12 +224,20 @@ fun MostrarParqueoScreen(
                         // Tiempo estimado
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("🕐", fontSize = 22.sp)
-                            Text(
-                                state.tiempoTexto,
-                                fontWeight = FontWeight.Bold,
-                                color = colorScheme.primary,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            if (state.isRouteLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = colorScheme.primary
+                                )
+                            } else {
+                                Text(
+                                    state.tiempoTexto,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colorScheme.primary,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                             Text(
                                 "Tiempo est.",
                                 style = MaterialTheme.typography.bodySmall,

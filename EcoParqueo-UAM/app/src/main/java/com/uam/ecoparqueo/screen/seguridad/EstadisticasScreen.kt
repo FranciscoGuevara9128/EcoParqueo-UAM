@@ -50,26 +50,21 @@ fun EstadisticasScreen(
         onNavigate = onDrawerNavigate,
         onIrAlPanel = onIrAlPanel,
         onCerrarSesion = onCerrarSesion
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Estadísticas de Ocupación", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onVolver) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = colorScheme.onPrimary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorScheme.primary,
-                    titleContentColor = colorScheme.onPrimary
-                )
-            )
-        }
     ) { paddingValues ->
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = colorScheme.primary,
+                    modifier = Modifier.size(48.dp),
+                    strokeWidth = 4.dp
+                )
+            }
+        } else {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -77,7 +72,6 @@ fun EstadisticasScreen(
                 .background(colorScheme.background)
         ) {
             // Segmented control / Tabs para evitar sobrecargar la pantalla
-            PrimaryTabRow(
             TabRow(
                 selectedTabIndex = activeTab,
                 containerColor = colorScheme.surface,
@@ -134,14 +128,12 @@ fun EstadisticasScreen(
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = "Ocupación total: ${String.format(java.util.Locale.getDefault(), "%.1f", state.porcentajeOcupacion)}%",
-                                    text = "Ocupación total: ${String.format("%.1f", state.porcentajeOcupacion)}%",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = colorScheme.onSurfaceVariant
                                 )
 
                                 Spacer(modifier = Modifier.height(16.dp))
-                                HorizontalDivider(color = colorScheme.outline.copy(alpha = 0.1f), thickness = 1.dp)
                                 HorizontalDivider(color = colorScheme.outline.copy(alpha = 0.1f))
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text(
@@ -151,109 +143,6 @@ fun EstadisticasScreen(
                                     color = colorScheme.onSurface
                                 )
                             }
-                        }
-
-                        // 2. Gráfico de Pareto real
-                        ParetoChartCard(
-                            parqueos = state.parqueos,
-                            modifier = Modifier.padding(bottom = 20.dp)
-                        )
-                    }
-                    1 -> {
-                        // ── TAB 1: OCUPACIÓN POR ZONAS (Carrusel con flechas) ──
-                        Text(
-                            text = "Ocupación por Zonas de Parqueo",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.primary,
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
-
-                        if (state.parqueos.isEmpty()) {
-                            Text(
-                                text = "No hay parqueos registrados en el sistema.",
-                                color = colorScheme.onSurfaceVariant,
-                                fontSize = 13.sp
-                            )
-                        } else {
-                            var selectedIndex by remember { mutableStateOf(0) }
-                            val index = selectedIndex.coerceIn(0, state.parqueos.size - 1)
-                            val p = state.parqueos[index]
-
-                            val ocupadosP = p.capacidadTotal - p.disponibles
-                            val porcP = if (p.capacidadTotal > 0) (ocupadosP.toFloat() / p.capacidadTotal) else 0f
-
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 12.dp),
-                                shape = RoundedCornerShape(28.dp),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                                colors = CardDefaults.cardColors(containerColor = colorScheme.surface),
-                                border = BorderStroke(1.dp, colorScheme.outline.copy(alpha = 0.1f))
-                            ) {
-                                Column(modifier = Modifier.padding(24.dp)) {
-                                    // Selector de parqueos con flechas izquierda / derecha
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        IconButton(
-                                            onClick = {
-                                                selectedIndex = if (selectedIndex == 0) state.parqueos.size - 1 else selectedIndex - 1
-                                            }
-                                        ) {
-                                            Text("◀", fontSize = 18.sp, color = colorScheme.primary)
-                                        }
-
-                                        Text(
-                                            text = p.nombre,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 18.sp,
-                                            color = colorScheme.primary,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.weight(1f)
-                                        )
-
-                                        IconButton(
-                                            onClick = {
-                                                selectedIndex = (selectedIndex + 1) % state.parqueos.size
-                                            }
-                                        ) {
-                                            Text("▶", fontSize = 18.sp, color = colorScheme.primary)
-                                        }
-                                    }
-
-                                    Spacer(modifier = Modifier.height(24.dp))
-
-                                    Text(
-                                        text = "Ocupación: ${ocupadosP} de ${p.capacidadTotal} espacios",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        text = "Disponibles: ${p.disponibles} espacios libres",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = colorScheme.secondary
-                                    )
-
-                                    Spacer(modifier = Modifier.height(16.dp))
-
-                                    LinearProgressIndicator(
-                                        progress = { porcP },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(12.dp)
-                                            .clip(RoundedCornerShape(6.dp)),
-                                        color = if (porcP > 0.85f) colorScheme.error else colorScheme.secondary,
-                                        trackColor = colorScheme.secondaryContainer
-                                    )
-                                }
-                            }
-                        }
                         }
 
                         // 2. Gráfico de Pareto real
@@ -426,11 +315,6 @@ fun EstadisticasScreen(
                                 modifier = Modifier.padding(bottom = 16.dp)
                             )
                         } else {
-                            state.registros.sortedByDescending { it.fechaHoraIngreso }.take(10).forEach { log ->
-                                val formatoHora = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault())
-                                val formatoFecha = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
-                                val hora = formatoHora.format(java.util.Date(log.fechaHoraIngreso))
-                                val fecha = formatoFecha.format(java.util.Date(log.fechaHoraIngreso))
                             state.registros.sortedByDescending { it.fechaHora }.take(10).forEach { log ->
                                 val formatoHora = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault())
                                 val formatoFecha = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
@@ -457,7 +341,6 @@ fun EstadisticasScreen(
                                                 shape = RoundedCornerShape(8.dp)
                                             ) {
                                                 Text(
-                                                    text = log.vehiculoId,
                                                     text = log.placa,
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 13.sp,
@@ -467,7 +350,6 @@ fun EstadisticasScreen(
                                             }
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(
-                                                text = log.parqueoId,
                                                 text = log.parqueoNombre,
                                                 fontSize = 13.sp,
                                                 fontWeight = FontWeight.Medium,
@@ -497,7 +379,7 @@ fun EstadisticasScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 OutlinedButton(
-                    onClick = onVolver,
+                    onClick = onIrAlPanel,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -510,5 +392,6 @@ fun EstadisticasScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+        } // end else (not loading)
     }
 }

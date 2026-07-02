@@ -21,10 +21,10 @@ data class VehiculoEntity(
     @PrimaryKey val id: String,
     val usuarioId: String?,
     val numeroPlaca: String,
-    val marca: String,
-    val modelo: String,
-    val anio: String,
-    val colorVehiculo: String,
-    val tipoVehiculo: String,
-    val notasAdicionales: String
+    val marca: String?,
+    val modelo: String?,
+    val anio: String?,
+    val colorVehiculo: String?,
+    val tipoVehiculo: String?,
+    val notasAdicionales: String?
 )

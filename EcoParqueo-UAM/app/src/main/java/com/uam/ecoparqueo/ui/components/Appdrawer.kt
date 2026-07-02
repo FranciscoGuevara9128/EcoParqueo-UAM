@@ -95,7 +95,7 @@ private val ITEMS_GUARDA = listOf(
 fun AppDrawerContent(
     nombreUsuario: String,
     tipoUsuario: String, // "Estudiante" | "Guarda"
-    pantallaActual: DrawerDestination,
+    pantallaActual: DrawerDestination?,
     onNavigate: (DrawerDestination) -> Unit,
     onIrAlPanel: () -> Unit,
     onCerrarSesion: () -> Unit
@@ -201,7 +201,7 @@ fun AppDrawerContent(
 fun EcoParqueoDrawerScaffold(
     nombreUsuario: String,
     tipoUsuario: String,
-    pantallaActual: DrawerDestination,
+    pantallaActual: DrawerDestination?,
     title: String,
     onNavigate: (DrawerDestination) -> Unit,
     onIrAlPanel: () -> Unit,
@@ -218,8 +218,7 @@ fun EcoParqueoDrawerScaffold(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                // El menú solo llega hasta la mitad de la pantalla.
-                modifier = Modifier.fillMaxWidth(0.5f)
+                modifier = Modifier.width(300.dp)
             ) {
                 AppDrawerContent(
                     nombreUsuario = nombreUsuario,

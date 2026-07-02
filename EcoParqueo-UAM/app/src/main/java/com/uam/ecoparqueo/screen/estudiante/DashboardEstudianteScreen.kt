@@ -18,6 +18,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.uam.ecoparqueo.Graph
+import com.uam.ecoparqueo.ui.components.DrawerDestination
+import com.uam.ecoparqueo.ui.components.EcoParqueoDrawerScaffold
 import com.uam.ecoparqueo.vmodel.DashboardEstudianteViewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,30 +34,24 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun DashboardEstudianteScreen(
     nombreUsuario: String,
+    tipoUsuario: String,
+    onDrawerNavigate: (DrawerDestination) -> Unit,
+    onIrAlPanel: () -> Unit,
+    onCerrarSesion: () -> Unit,
     onNavigateToGestionVehiculos: () -> Unit,
     onNavigateToSeleccionParqueo: () -> Unit,
-    onCerrarSesion: () -> Unit,
     viewModel: DashboardEstudianteViewModel = viewModel()
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    val listParqueosState = Graph.parqueoRepository.getAllParqueosFlow().collectAsState(initial = emptyList())
-    val listParqueos = listParqueosState.value
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "EcoParqueo UAM",
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.onPrimary
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = colorScheme.primary
-                )
-            )
-        }
+    EcoParqueoDrawerScaffold(
+        nombreUsuario = nombreUsuario,
+        tipoUsuario = tipoUsuario,
+        pantallaActual = null, // Pantalla principal, ningún item del menú activo resaltado
+        title = "EcoParqueo UAM",
+        onNavigate = onDrawerNavigate,
+        onIrAlPanel = onIrAlPanel,
+        onCerrarSesion = onCerrarSesion
     ) { paddingValues ->
         val scrollState = rememberScrollState()
         Column(

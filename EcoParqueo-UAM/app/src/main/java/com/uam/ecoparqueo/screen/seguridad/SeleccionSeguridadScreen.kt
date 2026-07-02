@@ -244,7 +244,16 @@ fun SeleccionSeguridadScreen(
                                     textAlign = TextAlign.Center,
                                     maxLines = 2
                                 )
-                            } ?: Text("Cargando puntos de control...", color = colorScheme.onSurfaceVariant)
+                            } ?: Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(32.dp),
+                                    color = colorScheme.primary,
+                                    strokeWidth = 3.dp
+                                )
+                            }
                         }
 
                         // Flecha Derecha

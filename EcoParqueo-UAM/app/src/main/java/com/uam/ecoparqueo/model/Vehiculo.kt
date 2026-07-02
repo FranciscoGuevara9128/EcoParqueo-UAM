@@ -13,13 +13,13 @@ data class UsuarioRef(
 
 data class Vehiculo(
     @SerializedName("id") val id: String? = null,
-    @SerializedName("marca") val marca: String,
+    @SerializedName("marca") val marca: String? = null,
     @SerializedName("numero_placa") val numeroPlaca: String,
-    @SerializedName("modelo") val modelo: String,
-    @SerializedName("anio") val anio: String,
-    @SerializedName("color_vehiculo") val colorVehiculo: String,
-    @SerializedName("tipo_vehiculo") val tipoVehiculo: String,
-    @SerializedName("notas_adicionales") val notasAdicionales: String = "",
+    @SerializedName("modelo") val modelo: String? = null,
+    @SerializedName("anio") val anio: String? = null,
+    @SerializedName("color_vehiculo") val colorVehiculo: String? = null,
+    @SerializedName("tipo_vehiculo") val tipoVehiculo: String? = null,
+    @SerializedName("notas_adicionales") val notasAdicionales: String? = null,
     // nullable: se omite si es null (Gson omite campos null por defecto con serializeNulls=false)
     @SerializedName("usuario") val usuario: UsuarioRef? = null
 )
